@@ -12,5 +12,12 @@ To address this issue, a generic decomposition of how a microprocessor is using 
 The Generic Optimization Data Analyzer (GOoDA) project integrates this expertise into a profiling tool in order to lower the required expertise of the user and, being designed from the ground up with large-scale object-oriented applications in mind, it will be particularly useful for large codebases.
 There is a great deal of useful documentation on performance analysis and SW optimization available in gooda-analyzer/docs.
 
+https://github.com/David-Levinthal/gooda/tree/master/gooda-analyzer/docs
 https://github.com/David-Levinthal/gooda/blob/master/gooda-analyzer/docs/CycleAccountingandPerformanceAnalysis.pdf
+https://github.com/David-Levinthal/gooda/blob/master/gooda-analyzer/docs/Driving_the_Gooda_visualizer.pdf
+https://github.com/David-Levinthal/gooda/blob/master/gooda-analyzer/docs/Micro-architecture.pdf
+https://github.com/David-Levinthal/gooda/blob/master/gooda-analyzer/docs/cycle_accounting_and_gooda.pdf
+
+![Cycle Tree]
+(https://github.com/David-Levinthal/gooda/blob/master/gooda-visualizer/images/cycleTree.png)
 
