@@ -1,0 +1,10 @@
+ Format_version: 1.0
+ architecture:x86_64
+ family:6, model:44
+ num_sockets:2, num_cores:24
+ num_col:55
+ cpu_desc:Intel(R) Xeon(R) CPU X5650 @ 2.67GHz
+ num_fixed:55
+ num_ordered:0
+ num_branch:8
+ num_sub_branch:3

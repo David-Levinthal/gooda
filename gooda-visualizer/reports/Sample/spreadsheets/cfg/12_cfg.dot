@@ -1,0 +1,18 @@
+digraph "c_parser_peek_token"{
+	rankdir=LR;
+	node[shape=box,colorscheme=ylorrd9, style=filled];
+
+	"Basic Block 1" [fillcolor=9];
+	"Basic Block 2" [fillcolor=1];
+	"Basic Block 3" [fillcolor=1];
+	"Basic Block 4" [fillcolor=3];
+	"Addr 1";
+	"Addr 2";
+
+	"Basic Block 1"->"Basic Block 4";
+	"Basic Block 1"->"Basic Block 2";
+	"Basic Block 2"->"Addr 1";
+	"Addr 1"->"Basic Block 3";
+	"Basic Block 3"->"Basic Block 4";
+	"Basic Block 4"->"Addr 2";
+}

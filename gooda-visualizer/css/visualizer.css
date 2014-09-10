@@ -1,0 +1,140 @@
+html{
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color:rgba(0, 0, 0, 0);
+  -moz-user-select: none;
+  user-select: none;
+}
+
+html, body.claro{
+  height:100%;
+  overflow: hidden;
+  font: 12px 'Lucida Grande', tahoma, verdana, arial, sans-serif;
+}
+
+body.claro{
+  background: url(../images/bodyBG.gif) repeat-x scroll left top #FFFFFF;
+}
+
+.claro .dijitTreeExpando{
+  width: 0;
+  height: 0;
+}
+
+:focus { outline-style: none; }
+
+.slick-header-column-secondary.cycleBranch, .slick-cell.cycleBranch{
+  color:green;
+  white-space: pre;
+}
+
+.slick-header-column-secondary.cycleLeafMain, .slick-cell.cycleLeafMain{
+  color: red;
+  white-space: pre;
+}
+
+.slick-header-column-secondary.cycleLeaf, .slick-cell.cycleLeaf{
+  color: green;
+  white-space: pre;
+}
+
+.slick-header-column-secondary.eventLeaf, .slick-cell.eventLeaf{
+  color: black;
+}
+
+.slick-cell.code {
+  text-align:left;
+  white-space: pre;
+  color:#044080;
+  font-family: 'Lucida Console', 'Andale Mono', 'DejaVu Sans Mono', monospace;
+}
+
+.slick-cell.names{
+  text-align:left;
+  white-space: pre; 
+}
+
+.dijitAccordionText{
+  font-weight: bold;
+}
+
+.dijitTab .tabLabel{
+  color: #044080;
+  font-weight: bold;
+  font-size: 11px;
+}
+
+.toggle {
+  height: 9px;
+  width: 18px;
+  display: inline-block;
+}
+
+.toggle.expand {
+  background: url(../images/expand.gif) no-repeat center center;
+}
+
+.toggle.collapse {
+  background: url(../images/collapse.gif) no-repeat center center;
+}
+
+.visualizerIcon {
+	width: 18px;
+	height: 18px;
+	text-align: center;
+}
+
+.visualizerIconMagnifyIn{
+  background-image: url('../images/magnifierZoomIn.png');
+  background-repeat: no-repeat;
+  background-size: 18px 18px;
+}
+
+.visualizerIconMagnifyOut{
+  background-image: url('../images/magnifierZoomOut.png');
+  background-repeat: no-repeat;
+  background-size: 18px 18px;
+}
+
+.help {
+  text-align: justify; 
+}
+
+.help p{
+  margin: 0px 0px;
+}
+
+#viewport{
+  height: 100%;
+  width: 100%;
+}
+
+#headerContainer{
+  text-align: center; 
+  height: 12px; 
+  overflow: visible; 
+  border: 0; 
+  padding: 0; 
+  background: transparent; 
+  display:inline;
+}
+
+#header{
+  font-size: 14px;
+  font-weight: bold;
+}
+
+#header .headerEm{
+  display:inline;
+  text-shadow: 1px 1px 2px #044080;
+  color:#FFF;
+}
+
+#tutorial img{
+  display: block;
+  margin: 20px auto 10px auto;
+  height: 450px;
+}
+
+#navigationMenu{
+  width: 150px;
+}

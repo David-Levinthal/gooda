@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jnlp spec="1.0+" codebase="" href="">
+    <information>
+        <title>Javascript Filesystem Library</title>
+        <vendor>Sun</vendor>
+    </information>
+    <resources>
+        <!-- Application Resources -->
+        <j2se version="1.6+"
+              href="http://java.sun.com/products/autodl/j2se"/>
+        <jar href="JsFsApplet.jar" main="true" />
+
+    </resources>
+    <applet-desc 
+         name="JsFsApplet"
+	 main-class="applet.JsFsApplet"
+         width="1"
+	 height="1"
+	 float="left">
+     </applet-desc>
+     <security>
+	     <all-permissions/>
+     </security>
+</jnlp>

@@ -1,0 +1,261 @@
+Gooda performance analysis package
+Installation and usage instructions
+
+There are three installations required to be able to do performance analysis in profiling mode:
+  - kernel
+  - perf tool
+  - gooda analyzer + visualizer
+
+1) Linux kernel
+
+   We recommend you use a kernel 3.3 with this version of Gooda.
+
+2) Perf tool
+
+   The instructions in this section pertain to Linux kernel 3.3.
+
+   The perf tool is part of the Linux kernel source tree under tools/perf.
+
+   As of this writing, the perf tool must still be patched to work with Gooda.
+   The patches are necessary to link the perf tool with the libpfm4 library
+   to provide access to the full list of hardware events using symbolic names
+   instead of raw hex encodings.
+
+   There are two patches necessary for the perf tool:
+   - add timing to sample to enable multiplexing correction
+   - link perf with libpfm4
+
+   Patches are provided in the perf-patches subdir. We
+   assume the Gooda package was unpacked in the $GOODA_ROOT_DIR
+   directory.
+
+   Steps:
+
+   - download libpfm4 source code from http://perfmon2.sf.net.
+     You need libpfm-4.3.0.tar.gz or the git tree. You can download
+     the git tree with: git clone git://perfmon2.git.sf.net/gitroot/perfmon2/libpfm4
+   - cd libpfm4
+   - make
+   - sudo make install
+
+   - download the Linux 3.3 source tree (either the tarball or from the git tree)
+     kernel source code is available from www.kernel.org.
+   - untar kernel source code
+   - cd kernel source dir
+   - cat $GOODA_ANALYZER_ROOT/perf-patches/linux-v3.3/* | patch -p1
+   - cd tools/perf
+   - make
+   - sudo make install
+   - verify you have perf working with libpfm4. For that, you can run perf list,
+     perf stat --pfm-events unhalted_core_cycles.
+
+3/ Gooda
+
+   To build the gooda analyzer, you first need to install the binutils-dev
+   or binutils-devel package on your system. On an Ubuntu-based system, this
+   is accomplished with:
+
+     $ sudo apt-get install binutils-dev
+
+   On a Fedora system:
+     $ sudo yum install binutil-devel
+
+   You will also need the graphviz package, be sure it is installed
+
+     $ sudo apt-get install graphviz
+
+   Then, you can build the Gooda analyzer with:
+   - make
+
+   Resulting binary is: gooda
+
+   As of this version, gooda needs to be run in place,i.e., you do not need to
+   type make install.
+
+4/ Collecting data
+
+   Once you've booted with kernel 3.3 and installed libpfm4 and perf, you can
+   start collecting profiles.
+
+   As of this version of Gooda, you can collect a very complete set of events on:
+   - a Intel Westmere based dual socket system (model 44, 47) using the run_record_cyc_wsm.sh
+   - a Intel SandyBridge desktop (model 42) using the run_record_cyc_snb.sh
+   - a Intel IvyBridge desktop (model 58) using the run_record_cyc_ivb.sh
+
+  On SNB and IVB systems you can collect data for a call count graph plus tabular displays with the script gooda_cg.sh
+  On SNB and IVB systems you can collect data for basic block execution counts with the script gooda_cg.sh
+
+   You can tell the model number by looking at /proc/cpuinfo:
+   $ cat /proc/cpuinfo
+   processor	: 0
+   vendor_id	: GenuineIntel
+   cpu family	: 6
+   model	: 44
+   model name	: Intel(R) Xeon(R) CPU           X5650  @ 2.67GHz
+
+   You need to determine which collection script is appropriate for your system.
+   Gooda does not do this automatically.
+
+   The collection scripts are provided in the scripts subdir.
+
+   The collection scripts MUST be run as root given that they invoke the perf tool in
+   system-wide monitoring mode (with the -a option).
+
+   We STRONGLY recommend you use the provided collection script instead of trying to invoke
+   perf directly.
+
+   Invoking these scripts while the application in question is running in steady state
+   will result in a perf.data file being created with the required data.
+
+   As such, it is recommended that you start the applications under test before invoking
+   the collection script. Then you start the collection script and you measure for a fixed
+   time duration.  The scripts expect an argument which is a command to execute to cover the
+   duration of the measurement. Typically, the sleep command is used:
+
+     $ sudo scripts/run_record_cyc_wsm_ep.sh sleep 1000
+
+   This command collects about 45 events on a WSM_EP system for 1000s.
+
+   IF YOU DESIRE TO VIEW THE PROFILE AGGREGATED BY SOURCE LINE NUMBER THE BINARY MUST BE BUILT
+   WITH DEBUG SYMBOLS. This does NOT mean that the binary cannot be built with heavy optimizations
+   (including FDO).
+
+
+There is a bug in perf at the moment which causes the collected data to have bad process maps if the -a option is used
+in conjunction with having perf start the application and run it to completion.
+    (ie something like     perf record -e event1:period=2000000,event2:period=2000000 -a -R -- ./myapp   )
+
+if the collection must be done for a start to finish run of the application, then the -a option must be removed.
+This will result in your having no idea how much time was used by the idle process for example.
+and likely cause multiplex correction problems for single threaded apps unless taskset is used to pin affinities
+
+THE -R OPTION IS REQUIRED IN ALL CASES! the gooda analyzer will certainly fail unless raw mode is used.
+
+Gooda requires the sampling periods be set to constants for all events. 
+If you make your own event lists, copy the formats from the *.txt files exactly.
+the order of the options cannot be changed or the analyzer will not recognize
+the event.
+ 
+The Gooda package is intended for server performance analysis.
+Thus if used properly it can support an environment where
+one machine is used for builds
+a different machine is used to run the app
+a third machine is used for the gooda analysis
+and the data is viewed from a fourth machine with a web browser
+
+The Gooda package is constructed from two sub components
+gooda-analyzer and gooda-visualizer
+for the rest of this discussion I will call the base installation directory path   my_gooda
+installed in the home directory of my_user
+this is the directory that has the two subdirectories (gooda-analyzer, gooda-visualizer)
+Further the tool is designed to function in an environment where the application is built on 1 machine, 
+it is run and perf record is invoked on a second (my_wsm_server in the discussion)
+the data is analyzed on a third (mydesk in the discussion)
+and if desired the data can be viewed on a fourth by one of two mechanisms
+Thus the tool is designed and targetted for analyzing applications run on large server farms.
+
+on the analysis machine (mydesk) make sure you have the right version of binutils that are consistent with your compiler.
+on mydesk
+mkdir /home/my_user/my_gooda
+put the tarball you downloaded from the gooda analyzer code.gooda.com repository in my_gooda
+git clone https://code.google.com/p/gooda/
+cd my_gooda/gooda-analyzer
+invoke
+make gooda 
+add my_gooda/gooda-analyzer to your PATH variable
+
+create a work directory where you plan to keep perf.data files, the needed binaries, sources 
+now install the visualizer from the code.google.com repository into myuser/good-visualizer
+cd /home/my_user/my_gooda
+git clone https://code.google.com/p/gooda-visualizer/
+and finally (and very very critically)
+cd gooda-visualizer
+cp ../gooda-analyzer/report_files/*.csv reports
+
+it is advisable to keep all this on your desktop machines local drive and not in your home directory if your home
+directory is a network mounted partition that has limited resources.
+It will use a lot of space
+
+to create a "report sub-directory" where you plan to do the profile analysis do something like:
+cd gooda-visualizer/reports
+mkdir mydata
+vi index    (add the string  mydata     to the list so the visualizer knows about the directory)
+cd mydata
+mkdir binaries
+mkdir sources
+
+copy (or soft link) the binaries/load modules of interest to the binaries file 
+	this assumes that the files are not in the same places on the analysis machine and the server
+	and gooda must folow the paths in the perf.data file which are valid only for the collection server
+
+copy (or soft link) the sources to the sources directory.
+	NOTE: modern source control/build systems will likely result in the debug symbol path to the source, in the dwarf data, 
+		not pointing to where you have checked out your sources in your source control tree
+		so the copy is needed so gooda can find the source files
+                these can of course be soft links
+
+
+collect the profile data
+on a WSM based collection machine:  my_wsm_server
+where you are logged in as root
+cd /data
+mkdir /data/myperf
+cd myperf
+
+On the machine with the gooda installation, cd to the gooda-analyzer/scripts directory
+and copy the perf record collection scripts to the server:
+		my_wsm_server for the example which we assume has a large scratch area called /data
+scp * root@my_wsm_server:/data/myperf
+
+It is critically important that the kernel and version of perf are fully up to date.
+Old versions of perf do not write the required data to the perf.data files and cannot be analyzed
+The gooda analyzer is very likely to crash if old versions of perf are used!
+
+on my_wsm in /data/myperf
+chmod 777 *.sh
+
+start the app (/data/mydir/myapp for the purpose of discussion) and get it to steady state and take a test run
+./run_record_cyc_wsm.sh sleep 300
+
+this will create a /data/myperf/perf.data file
+
+On SNB based systems (including snb_ep) a hardware based call count graph can be created.
+This is done by running the shb_cg.sh script and analyzing the perf.data file as before.
+
+
+On the analysis machine in the 
+/home/my_user/my_gooda/gooda-visualizer/reports/mydata
+directory
+scp root@my_wsm_server:/data/myperf/perf.data .
+cd binaries
+scp root@my_wsm_server:/data/mydir/mybin .
+if the binary was buitl directly on your desktop, with make or some such and not some complex system integrated 
+into a source control package and all the source files are still
+in the directories as indicated by the debug symbols,
+THEN gooda should find them if there are symbols in the binary
+but if not (or just to be sure)
+cd binaries
+cp all_sources_of_interest/* .
+cd ..
+and finally invoke:
+gooda >& gooda.log
+This will create a spreadsheets sub-directory which will have the results of the gooda analysis that will be displayed by the visualizer
+
+in another shell invoke the browser you wish to use. At least Firefox level 4.0 or equivalent (HTML5 capable).
+If you are using chrome, start google-chrome from the command line with the "--allow-file-access-from-files" option.
+open the browser and point it at
+/home/my_user/my_gooda/gooda-visualizer/index.html
+
+if you wish to share the analyzed displays you have two options
+1) tell your associates to install the visualizer and you send them a tarball of /mydata/spreadsheets
+and have them create a report and untar the spreadsheets tarball there
+the visualizer ONLY needs the spreadsheets tree in a reports directory (and the reports/index file must list the report directory name)
+to have the full functionality of the display
+the tables and svg files are completely self contained
+2) make the gooda-visualizer/index.html file available through a web server and tell your associates the url
+
+and away you go
+any questions contact levinth@google.com
+at least for now
+:-)
+

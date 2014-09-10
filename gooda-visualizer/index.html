@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  
+  <title>GOoDA Visualizer v1.1</title>
+
+  <link rel="stylesheet" href="js/dijit/themes/claro/document.css" />
+  <link rel="stylesheet" href="js/dijit/themes/claro/claro.css" />
+  
+  <link rel="stylesheet" href="css/slick.grid.css" />
+  <link rel="stylesheet" href="css/grid.theme.css" />
+  <link rel="stylesheet" href="css/visualizer.css" />
+  
+  <script src="js/dojo/dojo.js.uncompressed.js" data-dojo-config="async: true"></script>
+  <script src="js/modernizr.js"></script>
+  <script src="js/jquery/jquery.js"></script>
+  <script src="js/jquery/jquery.event.drag.js"></script>
+  <script src="js/jquery/jquery.mousewheel.js"></script>
+  <script src="js/jquery/jquery.svgscrollview.js"></script>
+  <script src="js/jquery/slick.grid.js"></script>
+  <script src="js/jquery/slick.model.js"></script>
+  
+  <script src="js/gooda/State.js"></script>
+  <script src="js/gooda/Notification.js"></script>
+  <script src="js/gooda/Columns.js"></script>
+  <script src="js/gooda/FileLoader.js"></script>
+  <script src="js/gooda/EventTable.js"></script>
+  <script src="js/gooda/GraphPane.js"></script>
+  <script src="js/gooda/DataView.js"></script>
+  <script src="js/gooda/FunctionView.js"></script>
+  <script src="js/gooda/HotspotView.js"></script>
+  <script src="js/gooda/ContainerView.js"></script>
+  <script src="js/gooda/HelpPane.js"></script>
+  <script src="js/gooda/Report.js"></script>
+  <script src="js/gooda/Visualizer.js"></script>
+  <script src="js/gooda/load.js"></script>
+</head>
+
+<body class="claro">
+  <div id="viewport"></div>
+
+  <!--deployJava.js creates a (deprecated!) applet tag anyway; by creating the tag explicitly the js onload event is triggered only after the plugin has been loaded-->
+  <!--<applet id="jsFs" code="dummy"><param value="java/JsFsApplet.jnlp" name="jnlp_href"></param><param value="false" name="codebase_lookup"></param></applet>-->
+</body>
+</html>

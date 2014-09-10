@@ -1,0 +1,13 @@
+https://openlab-mu-internal.web.cern.ch/openlab-mu-internal/00_News/News_pages/2010/10-15_Meeting_David_Levinthal/10-15_Meeting_David_Levinthal.htm
+http://software.intel.com/sites/products/collateral/hpc/vtune/performance_analysis_guide.pdf
+http://software.intel.com/en-us/articles/black-belt-itaniumr-processor-performance-the-foundation-part-1-of-5/
+http://software.intel.com/en-us/articles/black-belt-itaniumr-processor-performance-performance-monitoring-capabilities-part-2-of-5/
+http://software.intel.com/en-us/articles/black-belt-itaniumr-processor-performance-data-blocking-and-multi-level-cache-usage-part-3-of-5/
+http://software.intel.com/en-us/articles/black-belt-itaniumr-processor-performance-use-of-constrained-event-collection-part-4-of-5/
+http://software.intel.com/en-us/articles/black-belt-itaniumr-processor-performance-visual-inspection-of-compiler-generated-assembly-part-5-of-5/
+http://ispass.org/ispass2010/tutorials/
+assets.devx.com/goparallel/18027.pdf
+assets.devx.com/goparallel/17775.pdf
+ssets.devx.com/goparallel/17776.pdf
+http://software.intel.com/file/29672
+

@@ -1,0 +1,131 @@
+From fe3852cbd28211c0728d7229eefdd580e1f0324f Mon Sep 17 00:00:00 2001
+From: Stephane Eranian <eranian@google.com>
+Date: Wed, 16 May 2012 15:44:53 +0200
+Subject: [PATCH 2/2] perf record: enable multplexing correction via -R
+
+This patch allows perf record to request that evdnt
+timing be recorded in each sample. The timing consists
+of time_enabled and time_running. Those measures are
+used to compute the multiplexing correction, i.e., how
+how the event was actually measured by the hardware.
+
+To activate it, the user must use:
+$ perf record -a -R ....
+
+It works by forcing PERF_SAMPLE_READ in raw mode (-R),
+i.e., reading of the event group in each sample, although
+perf record does not group events. The side effect is that
+both time_running and time_enable get captured + empty
+four byte RAW section. This way we leverage existing perf
+record mode and do not add yet another option.
+
+Signed-off-by: Stephane Eranian <eranian@google.com>
+---
+ tools/perf/Documentation/perf-record.txt |    2 ++
+ tools/perf/util/evlist.c                 |    8 ++++++++
+ tools/perf/util/evlist.h                 |    1 +
+ tools/perf/util/evsel.c                  |   30 ++++++++++++++++++++++++++----
+ 4 files changed, 37 insertions(+), 4 deletions(-)
+
+diff --git a/tools/perf/Documentation/perf-record.txt b/tools/perf/Documentation/perf-record.txt
+index 23d060e..55f54a1 100644
+--- a/tools/perf/Documentation/perf-record.txt
++++ b/tools/perf/Documentation/perf-record.txt
+@@ -127,6 +127,8 @@ OPTIONS
+ -R::
+ --raw-samples::
+ Collect raw sample records from all opened counters (default for tracepoint counters).
++With this option, each sample includes at least: CPU, timestamp, time running/enabled
++(multiplexing scaling factor).
+ 
+ -C::
+ --cpu::
+diff --git a/tools/perf/util/evlist.c b/tools/perf/util/evlist.c
+index 186b877..6351d4a 100644
+--- a/tools/perf/util/evlist.c
++++ b/tools/perf/util/evlist.c
+@@ -651,6 +651,14 @@ u64 perf_evlist__sample_type(struct perf_evlist *evlist)
+ 	return first->attr.sample_type;
+ }
+ 
++u64 perf_evlist__read_format(const struct perf_evlist *evlist)
++{
++	struct perf_evsel *first;
++
++	first = list_entry(evlist->entries.next, struct perf_evsel, node);
++	return first->attr.read_format;
++}
++
+ u16 perf_evlist__id_hdr_size(struct perf_evlist *evlist)
+ {
+ 	struct perf_evsel *first = perf_evlist__first(evlist);
+diff --git a/tools/perf/util/evlist.h b/tools/perf/util/evlist.h
+index 56003f7..7972721 100644
+--- a/tools/perf/util/evlist.h
++++ b/tools/perf/util/evlist.h
+@@ -111,6 +111,7 @@ void __perf_evlist__set_leader(struct list_head *list);
+ void perf_evlist__set_leader(struct perf_evlist *evlist);
+ 
+ u64 perf_evlist__sample_type(struct perf_evlist *evlist);
++u64 perf_evlist__read_format(const struct perf_evlist *evlist);
+ bool perf_evlist__sample_id_all(struct perf_evlist *evlist);
+ u16 perf_evlist__id_hdr_size(struct perf_evlist *evlist);
+ 
+diff --git a/tools/perf/util/evsel.c b/tools/perf/util/evsel.c
+index d144d46..7e7629e 100644
+--- a/tools/perf/util/evsel.c
++++ b/tools/perf/util/evsel.c
+@@ -472,6 +472,7 @@ void perf_evsel__config(struct perf_evsel *evsel, struct perf_record_opts *opts,
+ 		attr->sample_type	|= PERF_SAMPLE_TIME;
+ 		attr->sample_type	|= PERF_SAMPLE_RAW;
+ 		attr->sample_type	|= PERF_SAMPLE_CPU;
++		attr->sample_type	|= PERF_SAMPLE_ID | PERF_SAMPLE_READ;
+ 	}
+ 
+ 	if (opts->no_delay) {
+@@ -852,6 +853,29 @@ static bool sample_overlap(const union perf_event *event,
+ 	return false;
+ }
+ 
++static int
++sample_read2u64(const u64 *array, u64 fmt)
++{
++	u64 nr = 1;
++	int ret = 1; /* nr or value */
++
++	if (fmt & PERF_FORMAT_TOTAL_TIME_ENABLED)
++		ret++;
++
++	if (fmt & PERF_FORMAT_TOTAL_TIME_RUNNING)
++		ret++;
++
++	if (fmt & PERF_FORMAT_GROUP) {
++		nr = *(u64 *)array;
++		ret += nr;
++	}
++
++	if (fmt & PERF_FORMAT_ID)
++		ret += nr;
++
++	return ret;
++}
++
+ int perf_evsel__parse_sample(struct perf_evsel *evsel, union perf_event *event,
+ 			     struct perf_sample *data)
+ {
+@@ -941,10 +965,8 @@ int perf_evsel__parse_sample(struct perf_evsel *evsel, union perf_event *event,
+ 		array++;
+ 	}
+ 
+-	if (type & PERF_SAMPLE_READ) {
+-		fprintf(stderr, "PERF_SAMPLE_READ is unsupported for now\n");
+-		return -1;
+-	}
++	if (type & PERF_SAMPLE_READ)
++		array += sample_read2u64(array, evsel->attr.read_format);
+ 
+ 	if (type & PERF_SAMPLE_CALLCHAIN) {
+ 		if (sample_overlap(event, array, sizeof(data->callchain->nr)))
+-- 
+1.7.9.5
+

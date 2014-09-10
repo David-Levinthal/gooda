@@ -1,0 +1,223 @@
+From e4622dda753cc849fe201c32b2cc9e05e17a180b Mon Sep 17 00:00:00 2001
+From: Stephane Eranian <eranian@google.com>
+Date: Tue, 18 Sep 2012 11:52:34 +0200
+Subject: [PATCH 2/2] perf record: enable multiplexing correction via -R
+
+This patch allows perf record to request that evdnt
+timing be recorded in each sample. The timing consists
+of time_enabled and time_running. Those measures are
+used to compute the multiplexing correction, i.e., how
+how the event was actually measured by the hardware.
+
+To activate it, the user must use:
+$ perf record -a -R ....
+
+It works by forcing PERF_SAMPLE_READ in raw mode (-R),
+i.e., reading of the event group in each sample, although
+perf record does not group events. The side effect is that
+both time_running and time_enable get captured + empty
+four byte RAW section. This way we leverage existing perf
+record mode and do not add yet another option.
+
+Signed-off-by: Stephane Eranian <eranian@google.com>
+---
+ tools/perf/Documentation/perf-record.txt |    2 ++
+ tools/perf/builtin-test.c                |    4 ++--
+ tools/perf/util/event.h                  |    3 ++-
+ tools/perf/util/evlist.c                 |    8 +++++++
+ tools/perf/util/evlist.h                 |    1 +
+ tools/perf/util/evsel.c                  |   34 +++++++++++++++++++++++++-----
+ tools/perf/util/python.c                 |    1 +
+ tools/perf/util/session.c                |    1 +
+ tools/perf/util/session.h                |    4 +++-
+ 9 files changed, 49 insertions(+), 9 deletions(-)
+
+diff --git a/tools/perf/Documentation/perf-record.txt b/tools/perf/Documentation/perf-record.txt
+index 23d060e..55f54a1 100644
+--- a/tools/perf/Documentation/perf-record.txt
++++ b/tools/perf/Documentation/perf-record.txt
+@@ -127,6 +127,8 @@ OPTIONS
+ -R::
+ --raw-samples::
+ Collect raw sample records from all opened counters (default for tracepoint counters).
++With this option, each sample includes at least: CPU, timestamp, time running/enabled
++(multiplexing scaling factor).
+ 
+ -C::
+ --cpu::
+diff --git a/tools/perf/builtin-test.c b/tools/perf/builtin-test.c
+index 5a8727c..cc1b7e7 100644
+--- a/tools/perf/builtin-test.c
++++ b/tools/perf/builtin-test.c
+@@ -564,7 +564,7 @@ static int test__basic_mmap(void)
+ 		}
+ 
+ 		err = perf_event__parse_sample(event, attr.sample_type, sample_size,
+-					       false, &sample, false);
++					       0, false, &sample, false);
+ 		if (err) {
+ 			pr_err("Can't parse sample, err = %d\n", err);
+ 			goto out_munmap;
+@@ -789,7 +789,7 @@ static int test__PERF_RECORD(void)
+ 					nr_events[type]++;
+ 
+ 				err = perf_event__parse_sample(event, sample_type,
+-							       sample_size, true,
++							       sample_size, 0, true,
+ 							       &sample, false);
+ 				if (err < 0) {
+ 					if (verbose)
+diff --git a/tools/perf/util/event.h b/tools/perf/util/event.h
+index 1b19728..58a9c19 100644
+--- a/tools/perf/util/event.h
++++ b/tools/perf/util/event.h
+@@ -198,7 +198,8 @@ int perf_event__preprocess_sample(const union perf_event *self,
+ const char *perf_event__name(unsigned int id);
+ 
+ int perf_event__parse_sample(const union perf_event *event, u64 type,
+-			     int sample_size, bool sample_id_all,
++			     int sample_size,
++			     u64 read_format, bool sample_id_all,
+ 			     struct perf_sample *sample, bool swapped);
+ int perf_event__synthesize_sample(union perf_event *event, u64 type,
+ 				  const struct perf_sample *sample,
+diff --git a/tools/perf/util/evlist.c b/tools/perf/util/evlist.c
+index 7400fb3..ae8ccbb 100644
+--- a/tools/perf/util/evlist.c
++++ b/tools/perf/util/evlist.c
+@@ -697,6 +697,14 @@ u64 perf_evlist__sample_type(const struct perf_evlist *evlist)
+ 	return first->attr.sample_type;
+ }
+ 
++u64 perf_evlist__read_format(const struct perf_evlist *evlist)
++{
++	struct perf_evsel *first;
++
++	first = list_entry(evlist->entries.next, struct perf_evsel, node);
++	return first->attr.read_format;
++}
++
+ u16 perf_evlist__id_hdr_size(const struct perf_evlist *evlist)
+ {
+ 	struct perf_evsel *first;
+diff --git a/tools/perf/util/evlist.h b/tools/perf/util/evlist.h
+index 989bee9..6612077 100644
+--- a/tools/perf/util/evlist.h
++++ b/tools/perf/util/evlist.h
+@@ -116,6 +116,7 @@ void perf_evlist__delete_maps(struct perf_evlist *evlist);
+ int perf_evlist__set_filters(struct perf_evlist *evlist);
+ 
+ u64 perf_evlist__sample_type(const struct perf_evlist *evlist);
++u64 perf_evlist__read_format(const struct perf_evlist *evlist);
+ bool perf_evlist__sample_id_all(const const struct perf_evlist *evlist);
+ u16 perf_evlist__id_hdr_size(const struct perf_evlist *evlist);
+ 
+diff --git a/tools/perf/util/evsel.c b/tools/perf/util/evsel.c
+index 9f6cebd..0e49dc9 100644
+--- a/tools/perf/util/evsel.c
++++ b/tools/perf/util/evsel.c
+@@ -213,6 +213,7 @@ void perf_evsel__config(struct perf_evsel *evsel, struct perf_record_opts *opts,
+ 		attr->sample_type	|= PERF_SAMPLE_TIME;
+ 		attr->sample_type	|= PERF_SAMPLE_RAW;
+ 		attr->sample_type	|= PERF_SAMPLE_CPU;
++		attr->sample_type	|= PERF_SAMPLE_ID | PERF_SAMPLE_READ;
+ 	}
+ 
+ 	if (opts->no_delay) {
+@@ -557,8 +558,33 @@ static bool sample_overlap(const union perf_event *event,
+ 	return false;
+ }
+ 
++static int
++sample_read2u64(const u64 *array, u64 fmt)
++{
++	u64 nr = 1;
++	int ret = 1; /* nr or value */
++
++	if (fmt & PERF_FORMAT_TOTAL_TIME_ENABLED)
++		ret++;
++
++	if (fmt & PERF_FORMAT_TOTAL_TIME_RUNNING)
++		ret++;
++
++	if (fmt & PERF_FORMAT_GROUP) {
++		nr = *(u64 *)array;
++		ret += nr;
++	}
++
++	if (fmt & PERF_FORMAT_ID)
++		ret += nr;
++
++	return ret;
++}
++
+ int perf_event__parse_sample(const union perf_event *event, u64 type,
+-			     int sample_size, bool sample_id_all,
++			     int sample_size,
++			     u64 read_format,
++			     bool sample_id_all,
+ 			     struct perf_sample *data, bool swapped)
+ {
+ 	const u64 *array;
+@@ -644,10 +670,8 @@ int perf_event__parse_sample(const union perf_event *event, u64 type,
+ 		array++;
+ 	}
+ 
+-	if (type & PERF_SAMPLE_READ) {
+-		fprintf(stderr, "PERF_SAMPLE_READ is unsupported for now\n");
+-		return -1;
+-	}
++	if (type & PERF_SAMPLE_READ)
++		array += sample_read2u64(array, read_format);
+ 
+ 	if (type & PERF_SAMPLE_CALLCHAIN) {
+ 		if (sample_overlap(event, array, sizeof(data->callchain->nr)))
+diff --git a/tools/perf/util/python.c b/tools/perf/util/python.c
+index e03b58a..8c2b371 100644
+--- a/tools/perf/util/python.c
++++ b/tools/perf/util/python.c
+@@ -807,6 +807,7 @@ static PyObject *pyrf_evlist__read_on_cpu(struct pyrf_evlist *pevlist,
+ 		first = list_entry(evlist->entries.next, struct perf_evsel, node);
+ 		err = perf_event__parse_sample(event, first->attr.sample_type,
+ 					       perf_evsel__sample_size(first),
++					       0,
+ 					       sample_id_all, &pevent->sample, false);
+ 		if (err)
+ 			return PyErr_Format(PyExc_OSError,
+diff --git a/tools/perf/util/session.c b/tools/perf/util/session.c
+index 56142d0..c62cfe0 100644
+--- a/tools/perf/util/session.c
++++ b/tools/perf/util/session.c
+@@ -82,6 +82,7 @@ static int perf_session__open(struct perf_session *self, bool force)
+ void perf_session__update_sample_type(struct perf_session *self)
+ {
+ 	self->sample_type = perf_evlist__sample_type(self->evlist);
++	self->read_format = perf_evlist__read_format(self->evlist);
+ 	self->sample_size = __perf_evsel__sample_size(self->sample_type);
+ 	self->sample_id_all = perf_evlist__sample_id_all(self->evlist);
+ 	self->id_hdr_size = perf_evlist__id_hdr_size(self->evlist);
+diff --git a/tools/perf/util/session.h b/tools/perf/util/session.h
+index 0c702e3..f3f4a4a 100644
+--- a/tools/perf/util/session.h
++++ b/tools/perf/util/session.h
+@@ -40,7 +40,8 @@ struct perf_session {
+ 	 *	  perf.data file.
+ 	 */
+ 	struct hists		hists;
+-	u64			sample_type;
++	u64			sample_type; /* identical for all events */
++	u64			read_format; /* identical for all events */
+ 	int			sample_size;
+ 	int			fd;
+ 	bool			fd_pipe;
+@@ -135,6 +136,7 @@ static inline int perf_session__parse_sample(struct perf_session *session,
+ {
+ 	return perf_event__parse_sample(event, session->sample_type,
+ 					session->sample_size,
++					session->read_format,
+ 					session->sample_id_all, sample,
+ 					session->header.needs_swap);
+ }
+-- 
+1.7.9.5
+

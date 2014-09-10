@@ -1,0 +1,13 @@
+This directory contains kernel and/or perf tool
+patches to make Gooda work.
+
+There is on subdir per kernel version. In each directory
+patches are numbered in increasing order. When applying
+the patches, you must respect the order:
+
+For Linux vX.Y:
+  $ cat linux-vX.Y/* | patch -p1
+
+The kernel and/or perf patches are distributed under the
+GPLv2 as used by the kernel source tree. See the COPYING
+file for more details.

@@ -1,0 +1,66 @@
+.slick-header-column {
+  border-right: 1px solid transparent;
+  text-transform:lowercase;
+  font-family: 'Lucida Console', 'Andale Mono', 'DejaVu Sans Mono', monospace;
+}
+
+.slick-header-column.even{
+  color:#044080;
+}
+
+.slick-header-column .slick-column-name{
+  font-size: 10px;
+}
+
+.slick-header-secondary{
+  border-bottom: 2px solid silver;
+}
+
+.slick-header-column-secondary:hover, .slick-header-column-active {
+  background: #EBF3FD;
+}
+
+.slick-header-column-secondary{
+  left: 10000px;
+  background:#F8F8F8;
+  color:#222;
+  text-overflow: ellipsis;
+  text-transform:uppercase;
+  text-align:right;
+  border-right: 1px solid silver;
+  font-family: 'Lucida Console', 'Andale Mono', 'DejaVu Sans Mono', monospace;
+  font-size: 11px;
+}
+
+.slick-row {
+    position: absolute;
+    background: white;
+    border: 0px;
+    line-height: 20px;
+}
+
+.slick-row.parent{
+  background: #eeeeee;
+}
+
+.slick-row.selected {
+  background: #FFEBA4;
+}
+
+.slick-row.hover{
+  background: #EBF3FD;
+}
+
+.slick-cell {
+  padding: 0 4px;
+  font-family: 'Lucida Console', 'Andale Mono', 'DejaVu Sans Mono', monospace;
+  font-size: 11px;
+}
+
+.slick-cell.invalid {
+  border-color: red;
+}
+
+.slick-sortable-placeholder {
+    background: silver!important;
+}

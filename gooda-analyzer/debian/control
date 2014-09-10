@@ -1,0 +1,20 @@
+Source: gooda
+Priority: extra
+Maintainer: David Levinthal <levinth@google.com>
+Standards-Version: 3.8.4
+Section: devel
+Homepage: http://code.google.com/p/gooda
+
+Package: gooda
+Section: devel
+Architecture: amd64 i386
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: This is a performance tool to analyze samples obtained via
+ the perf tool on Linux. Gooda provides a fine grain cycle breakdown
+ analysis of apps. Gooda processes the raw data from the perf.data
+ file into a series of spreadsheets which can then be visualized with
+ a web browser using the Gooda visualizer available from the following
+ site http://code.google.com/p/gooda-visualizer/.  Gooda uses perf with
+ actual hardware monitoring events (PMU events). Gooda comes with a series
+ collection scripts which make it easy to invoke perf correctly for each
+ CPU model.

@@ -1,0 +1,66 @@
+From e0c4c799eeeab571629d12d839d13bee77703292 Mon Sep 17 00:00:00 2001
+From: Stephane Eranian <eranian@google.com>
+Date: Wed, 16 May 2012 15:44:53 +0200
+Subject: [PATCH 2/2] perf record: enable multplexing correction via -R
+
+This patch allows perf record to request that evdnt
+timing be recorded in each sample. The timing consists
+of time_enabled and time_running. Those measures are
+used to compute the multiplexing correction, i.e., how
+how the event was actually measured by the hardware.
+
+To activate it, the user must use:
+$ perf record -a -R ....
+
+It works by forcing PERF_SAMPLE_READ in raw mode (-R),
+i.e., reading of the event group in each sample, although
+perf record does not group events. The side effect is that
+both time_running and time_enable get captured + empty
+four byte RAW section. This way we leverage existing perf
+record mode and do not add yet another option.
+
+Signed-off-by: Stephane Eranian <eranian@google.com>
+---
+ tools/perf/Documentation/perf-record.txt |    2 ++
+ tools/perf/util/evsel.c                  |    5 +++++
+ 2 files changed, 7 insertions(+)
+
+diff --git a/tools/perf/Documentation/perf-record.txt b/tools/perf/Documentation/perf-record.txt
+index 72d5415..fb373fb 100644
+--- a/tools/perf/Documentation/perf-record.txt
++++ b/tools/perf/Documentation/perf-record.txt
+@@ -133,6 +133,8 @@ OPTIONS
+ -R::
+ --raw-samples::
+ Collect raw sample records from all opened counters (default for tracepoint counters).
++With this option, each sample includes at least: CPU, timestamp, time running/enabled
++(multiplexing scaling factor).
+ 
+ -C::
+ --cpu::
+diff --git a/tools/perf/util/evsel.c b/tools/perf/util/evsel.c
+index 9f1ef9b..96ccd54 100644
+--- a/tools/perf/util/evsel.c
++++ b/tools/perf/util/evsel.c
+@@ -575,6 +575,9 @@ void perf_evsel__config(struct perf_evsel *evsel,
+ 
+ 	attr->sample_id_all = perf_missing_features.sample_id_all ? 0 : 1;
+ 	attr->inherit	    = !opts->no_inherit;
++	attr->read_format   = PERF_FORMAT_TOTAL_TIME_ENABLED |
++			      PERF_FORMAT_TOTAL_TIME_RUNNING |
++			      PERF_FORMAT_ID;
+ 
+ 	perf_evsel__set_sample_bit(evsel, IP);
+ 	perf_evsel__set_sample_bit(evsel, TID);
+@@ -660,6 +663,8 @@ void perf_evsel__config(struct perf_evsel *evsel,
+ 		perf_evsel__set_sample_bit(evsel, TIME);
+ 		perf_evsel__set_sample_bit(evsel, RAW);
+ 		perf_evsel__set_sample_bit(evsel, CPU);
++		perf_evsel__set_sample_bit(evsel, ID);
++		perf_evsel__set_sample_bit(evsel, READ);
+ 	}
+ 
+ 	if (opts->sample_address)
+-- 
+1.7.9.5
+
