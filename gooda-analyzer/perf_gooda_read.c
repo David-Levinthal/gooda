@@ -1595,6 +1595,82 @@ display_mmap(bufdesc_t *desc, struct perf_event_header *ehdr, struct perf_event_
 #endif
 }
 
+static void
+display_mmap2(bufdesc_t *desc, struct perf_event_header *ehdr, struct perf_event_attr *attr)
+{
+/*
+       struct {
+               uint32_t pid, tid;
+               uint64_t addr;
+               uint64_t len;
+               uint64_t pgoff;
+       } mm;
+*/
+       mm2_data mm2; /* new extended mmap record */
+       mm_data mm1;  /* old mmap record */
+       char *filename = NULL;
+       size_t sz;
+       uint64_t t;
+       int ret;
+
+        process_struc_ptr this_process;
+
+        num_mmap++;
+
+       ret = read_buffer(desc, &mm2, sizeof(mm2));
+       if (ret)
+               errx(1, "cannot read mmap data");
+
+       if (desc->needs_bswap) {
+               mm1.pid = bswap_32(mm2.pid);
+               mm1.tid = bswap_32(mm2.tid);
+               mm1.addr = bswap_64(mm2.addr);
+               mm1.len = bswap_64(mm2.len);
+               mm1.pgoff = bswap_64(mm2.pgoff);
+       } else {
+               /* just copy the fields we care about into the old struct */
+               mm1.pid = mm2.pid;
+               mm1.tid = mm2.tid;
+               mm1.addr = mm2.addr;
+               mm1.len = mm2.len;
+               mm1.pgoff = mm2.pgoff;
+       }
+
+       sz = ehdr->size - sizeof(mm2) - sizeof(*ehdr) - desc->sz_sample_id_all;
+       filename = malloc(sz);
+       if (!filename)
+               err(1, "cannot allocate memory for mmap filename len=%zu", sz);
+
+       ret = read_buffer(desc, filename, sz);
+       if (ret)
+               err(1, "cannot read mmap filename");
+
+#ifdef DBUG
+       fprintf(stderr,"MMAP2: PID:%d TID:%d ADDR:0x%"PRIx64" LEN:0x%"PRIx64" PGOFF:0x%"PRIx64" FILE:%s",
+               mm.pid,
+               mm.tid,
+               mm.addr,
+               mm.len,
+               mm.pgoff,
+               filename);
+
+#endif
+       if (desc->sample_id_all)
+               display_id(desc, ehdr, attr, &t);
+#ifdef DBUG
+       fputc('\n',stderr);
+#endif
+
+#ifdef ANALYZE
+        previous_mmap = insert_mmap(&mm1, filename,this_time);
+#endif
+
+#ifndef ANALYZE
+       free(filename);
+#endif
+}
+
+
 /*
  * layout:
  *
@@ -2003,6 +2079,7 @@ display_feature(bufdesc_t *desc, struct perf_event_header *ehdr, struct perf_eve
 }
 
 static record_ops_t record_ops[]={
+	[PERF_RECORD_MMAP2] 		= display_mmap2,
 	[PERF_RECORD_MMAP] 		= display_mmap,
 	[PERF_RECORD_LOST] 		= display_lost,
 	[PERF_RECORD_COMM] 		= display_comm,

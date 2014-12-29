@@ -54,7 +54,17 @@ typedef struct mm_struc{
                 uint64_t pgoff;
         } mm_data;
 
-
+typedef struct mm2_struc * mm2_struc_ptr;
+typedef struct mm2_struc{
+               uint32_t pid, tid;
+               uint64_t addr;
+               uint64_t len;
+               uint64_t pgoff;
+               uint32_t maj, min;
+               uint64_t ino;
+               uint64_t ino_generation;
+               uint32_t prot, flags;
+        } mm2_data;
 
 typedef struct perf_file_section {
 	uint64_t offset;

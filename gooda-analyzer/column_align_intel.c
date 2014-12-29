@@ -212,7 +212,7 @@ init_order_intel(int arch_val)
 	uint64_t offset;
 	char *file;
 
-	this_event_order = (event_order_struc_ptr)malloc(sizeof(event_order_data));
+	this_event_order = (event_order_struc_ptr)calloc(1, sizeof(event_order_data));
 	if(this_event_order == NULL)
 		err(1,"failed to create event_order_struc in init_order_intel");
 	fprintf(stderr,"init_order called for arch_val = %d\n",arch_val);

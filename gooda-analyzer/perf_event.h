@@ -478,6 +478,8 @@ enum perf_event_type {
 	 */
 	PERF_RECORD_SAMPLE		= 9,
 
+        PERF_RECORD_MMAP2               = 10,
+
 	PERF_RECORD_MAX,			/* non-ABI */
 };
 
