@@ -1,4 +1,4 @@
-From ac4a97790b74b52bcda4329133480dcb3be37181 Mon Sep 17 00:00:00 2001
+From abb45a1b9cccdf3eeadf6f08196b5beaac756209 Mon Sep 17 00:00:00 2001
 From: Stephane Eranian <eranian@google.com>
 Date: Wed, 16 May 2012 15:44:53 +0200
 Subject: [PATCH 2/2] perf record: enable multplexing correction via -R

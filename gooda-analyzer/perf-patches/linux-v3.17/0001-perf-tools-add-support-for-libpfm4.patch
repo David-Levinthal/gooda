@@ -1,4 +1,4 @@
-From c004988471ddcf419fb1ec77f554305de6a7cbd9 Mon Sep 17 00:00:00 2001
+From fdca5657d2168c6ce56d56dd0924309c7d53e8e0 Mon Sep 17 00:00:00 2001
 From: Stephane Eranian <eranian@google.com>
 Date: Mon, 23 Apr 2012 18:03:28 +0200
 Subject: [PATCH 1/2] perf tools: add support for libpfm4
@@ -23,21 +23,23 @@ You need to have libpfm4-dev package installed on your system.
 
 Signed-off-by: Stephane Eranian <eranian@google.com>
 ---
- tools/perf/Documentation/perf-record.txt  |   9 ++
- tools/perf/Documentation/perf-stat.txt    |   8 ++
- tools/perf/Documentation/perf-top.txt     |   9 ++
- tools/perf/builtin-list.c                 |  11 ++
- tools/perf/builtin-record.c               |  16 +++
- tools/perf/builtin-stat.c                 |  17 +++
- tools/perf/builtin-top.c                  |  17 +++
- tools/perf/config/Makefile                |  12 ++
- tools/perf/config/feature-checks/Makefile |   4 +
- tools/perf/tests/make                     |   3 +
- tools/perf/util/parse-events.c            | 232 ++++++++++++++++++++++++++++++
- tools/perf/util/parse-events.h            |   5 +
- tools/perf/util/pmu.c                     |  11 ++
- tools/perf/util/pmu.h                     |   1 +
- 14 files changed, 355 insertions(+)
+ tools/perf/Documentation/perf-record.txt       |   9 +
+ tools/perf/Documentation/perf-stat.txt         |   8 +
+ tools/perf/Documentation/perf-top.txt          |   9 +
+ tools/perf/builtin-list.c                      |  11 ++
+ tools/perf/builtin-record.c                    |  16 ++
+ tools/perf/builtin-stat.c                      |  17 ++
+ tools/perf/builtin-top.c                       |  17 ++
+ tools/perf/config/Makefile                     |  12 ++
+ tools/perf/config/feature-checks/Makefile      |   4 +
+ tools/perf/config/feature-checks/test-libpfm.c |   8 +
+ tools/perf/tests/make                          |   3 +
+ tools/perf/util/parse-events.c                 | 232 +++++++++++++++++++++++++
+ tools/perf/util/parse-events.h                 |   5 +
+ tools/perf/util/pmu.c                          |  11 ++
+ tools/perf/util/pmu.h                          |   1 +
+ 15 files changed, 363 insertions(+)
+ create mode 100644 tools/perf/config/feature-checks/test-libpfm.c
 
 diff --git a/tools/perf/Documentation/perf-record.txt b/tools/perf/Documentation/perf-record.txt
 index d460049..a4a2698 100644
@@ -311,6 +313,20 @@ index 6088f8d..b74e030 100644
  test-gtk2.bin:
  	$(BUILD) $(shell $(PKG_CONFIG) --libs --cflags gtk+-2.0 2>/dev/null)
  
+diff --git a/tools/perf/config/feature-checks/test-libpfm.c b/tools/perf/config/feature-checks/test-libpfm.c
+new file mode 100644
+index 0000000..a0edb97
+--- /dev/null
++++ b/tools/perf/config/feature-checks/test-libpfm.c
+@@ -0,0 +1,8 @@
++#include <sys/types.h>
++#include <perfmon/pfmlib.h>
++
++int main(void)
++{
++	(void)pfm_initialize();
++	return 0;
++}
 diff --git a/tools/perf/tests/make b/tools/perf/tests/make
 index 69a71ff..4dd9334 100644
 --- a/tools/perf/tests/make
