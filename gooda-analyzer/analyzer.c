@@ -33,7 +33,8 @@ limitations under the License.
 #include <fcntl.h>
 #include <unistd.h>
 #include "bfd.h"
-#include "libiberty.h"
+// remove libiberty.h for recent version of binutil...March 2015
+//#include "libiberty.h"
 //#include "demangle.h"
 #include <time.h>
 #include <limits.h>

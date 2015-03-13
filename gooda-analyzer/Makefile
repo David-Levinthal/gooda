@@ -27,7 +27,9 @@ INSTALL = install
 CFLAGS=-O2 -g -I. -DGOODA_DIR=\"$(GOODA_DIR)\"
 
 gooda :	perf_gooda_read.o gooda_create.o perf_gooda_create.o gooda_util.o analyzer.o asm2src.o column_align_intel.o column_align_def.o column_align.o load_addr.o
-	${CC} $(CFLAGS) -o $@ perf_gooda_read.o gooda_create.o perf_gooda_create.o load_addr.o gooda_util.o analyzer.o asm2src.o column_align.o column_align_intel.o column_align_def.o -lbfd -liberty -lz -ldl
+	${CC} $(CFLAGS) -o $@ perf_gooda_read.o gooda_create.o perf_gooda_create.o load_addr.o gooda_util.o analyzer.o asm2src.o column_align.o column_align_intel.o column_align_def.o -lbfd -lz -ldl
+#  old version before march 2015 required libiberty, APIs are now in other libraries
+#	${CC} $(CFLAGS) -o $@ perf_gooda_read.o gooda_create.o perf_gooda_create.o load_addr.o gooda_util.o analyzer.o asm2src.o column_align.o column_align_intel.o column_align_def.o -lbfd -liberty -lz -ldl
 
 gooda_create.o :	gooda_create.c gooda.h perf_gooda.h gooda_util.h perf_event.h
 	${CC} $(CFLAGS) -c gooda_create.c
