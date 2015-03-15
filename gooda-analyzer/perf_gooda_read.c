@@ -1647,11 +1647,11 @@ display_mmap2(bufdesc_t *desc, struct perf_event_header *ehdr, struct perf_event
 
 #ifdef DBUG
        fprintf(stderr,"MMAP2: PID:%d TID:%d ADDR:0x%"PRIx64" LEN:0x%"PRIx64" PGOFF:0x%"PRIx64" FILE:%s",
-               mm.pid,
-               mm.tid,
-               mm.addr,
-               mm.len,
-               mm.pgoff,
+               mm1.pid,
+               mm1.tid,
+               mm1.addr,
+               mm1.len,
+               mm1.pgoff,
                filename);
 
 #endif

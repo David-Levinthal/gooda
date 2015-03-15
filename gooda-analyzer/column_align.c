@@ -132,6 +132,13 @@ init_order(void)
 		init_order_intel(arch_val);
 		return;
 		}
+	else if ((family == 6) && (model == 69))
+		{
+//		HSW
+		arch_val = 8;
+		init_order_intel(arch_val);
+		return;
+		}
 	else if ((family == 6) && (model == 63))
 		{
 //		HSW_EP
@@ -182,7 +189,7 @@ branch_eval(int* sample_count)
 		}
 	else if ((family == 6) && (model == 60))
 		{
-//		HSW
+//		HSWM
 		branch_eval_intel();
 		return;
 		}
@@ -237,6 +244,12 @@ set_order(int* sample_count)
 	else if ((family == 6) && (model == 60))
 		{
 //		HSW
+		retval = set_order_intel(sample_count, 8);
+		return retval;
+		}
+	else if ((family == 6) && (model == 69))
+		{
+//		HSWM
 		retval = set_order_intel(sample_count, 8);
 		return retval;
 		}
