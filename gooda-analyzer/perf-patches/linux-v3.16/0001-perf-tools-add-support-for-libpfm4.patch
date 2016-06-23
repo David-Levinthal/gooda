@@ -1,4 +1,4 @@
-From 839a9f00fef6666e347f91e068ad9319925f018a Mon Sep 17 00:00:00 2001
+From 2b231ed30e6a3c05cce285278a40671e71214717 Mon Sep 17 00:00:00 2001
 From: Stephane Eranian <eranian@google.com>
 Date: Mon, 23 Apr 2012 18:03:28 +0200
 Subject: [PATCH 1/2] perf tools: add support for libpfm4
@@ -23,24 +23,26 @@ You need to have libpfm4-dev package installed on your system.
 
 Signed-off-by: Stephane Eranian <eranian@google.com>
 ---
- tools/perf/Documentation/perf-record.txt  |   9 ++
- tools/perf/Documentation/perf-stat.txt    |   8 ++
- tools/perf/Documentation/perf-top.txt     |   9 ++
- tools/perf/builtin-list.c                 |  11 ++
- tools/perf/builtin-record.c               |  16 +++
- tools/perf/builtin-stat.c                 |  17 +++
- tools/perf/builtin-top.c                  |  17 +++
- tools/perf/config/Makefile                |  12 ++
- tools/perf/config/feature-checks/Makefile |   4 +
- tools/perf/tests/make                     |   3 +
- tools/perf/util/parse-events.c            | 232 ++++++++++++++++++++++++++++++
- tools/perf/util/parse-events.h            |   5 +
- tools/perf/util/pmu.c                     |  11 ++
- tools/perf/util/pmu.h                     |   1 +
- 14 files changed, 355 insertions(+)
+ tools/perf/Documentation/perf-record.txt       |   9 +
+ tools/perf/Documentation/perf-stat.txt         |   8 +
+ tools/perf/Documentation/perf-top.txt          |   9 +
+ tools/perf/builtin-list.c                      |  11 ++
+ tools/perf/builtin-record.c                    |  16 ++
+ tools/perf/builtin-stat.c                      |  17 ++
+ tools/perf/builtin-top.c                       |  17 ++
+ tools/perf/config/Makefile                     |  12 ++
+ tools/perf/config/feature-checks/Makefile      |   4 +
+ tools/perf/config/feature-checks/test-libpfm.c |   9 +
+ tools/perf/tests/make                          |   3 +
+ tools/perf/util/parse-events.c                 | 232 +++++++++++++++++++++++++
+ tools/perf/util/parse-events.h                 |   5 +
+ tools/perf/util/pmu.c                          |  11 ++
+ tools/perf/util/pmu.h                          |   1 +
+ 15 files changed, 364 insertions(+)
+ create mode 100644 tools/perf/config/feature-checks/test-libpfm.c
 
 diff --git a/tools/perf/Documentation/perf-record.txt b/tools/perf/Documentation/perf-record.txt
-index d460049..a4a2698 100644
+index d460049cae8e..a4a26981a58d 100644
 --- a/tools/perf/Documentation/perf-record.txt
 +++ b/tools/perf/Documentation/perf-record.txt
 @@ -214,6 +214,15 @@ if combined with -a or -C options.
@@ -60,7 +62,7 @@ index d460049..a4a2698 100644
  --------
  linkperf:perf-stat[1], linkperf:perf-list[1]
 diff --git a/tools/perf/Documentation/perf-stat.txt b/tools/perf/Documentation/perf-stat.txt
-index 29ee857..b715b76 100644
+index 29ee857c09c6..b715b766a9c6 100644
 --- a/tools/perf/Documentation/perf-stat.txt
 +++ b/tools/perf/Documentation/perf-stat.txt
 @@ -41,6 +41,14 @@ OPTIONS
@@ -79,7 +81,7 @@ index 29ee857..b715b76 100644
  -a::
  --all-cpus::
 diff --git a/tools/perf/Documentation/perf-top.txt b/tools/perf/Documentation/perf-top.txt
-index 180ae02..20ade4a 100644
+index 180ae02137a5..20ade4a87d2c 100644
 --- a/tools/perf/Documentation/perf-top.txt
 +++ b/tools/perf/Documentation/perf-top.txt
 @@ -193,6 +193,15 @@ Default is to monitor all CPUS.
@@ -99,7 +101,7 @@ index 180ae02..20ade4a 100644
  --------------------------
  
 diff --git a/tools/perf/builtin-list.c b/tools/perf/builtin-list.c
-index 011195e..123ffbe 100644
+index 011195e38f21..123ffbeb2ef3 100644
 --- a/tools/perf/builtin-list.c
 +++ b/tools/perf/builtin-list.c
 @@ -16,6 +16,10 @@
@@ -128,7 +130,7 @@ index 011195e..123ffbe 100644
  	if (argc == 0) {
  		print_events(NULL, false);
 diff --git a/tools/perf/builtin-record.c b/tools/perf/builtin-record.c
-index 378b85b..383a5ae 100644
+index 378b85b731a7..383a5aef5f58 100644
 --- a/tools/perf/builtin-record.c
 +++ b/tools/perf/builtin-record.c
 @@ -30,6 +30,9 @@
@@ -169,7 +171,7 @@ index 378b85b..383a5ae 100644
  	if (rec->evlist == NULL)
  		return -ENOMEM;
 diff --git a/tools/perf/builtin-stat.c b/tools/perf/builtin-stat.c
-index 65a151e..0b836cc 100644
+index 65a151e36067..0b836cc443ea 100644
 --- a/tools/perf/builtin-stat.c
 +++ b/tools/perf/builtin-stat.c
 @@ -62,6 +62,10 @@
@@ -211,7 +213,7 @@ index 65a151e..0b836cc 100644
  
  	evsel_list = perf_evlist__new();
 diff --git a/tools/perf/builtin-top.c b/tools/perf/builtin-top.c
-index 377971d..97d7b5f 100644
+index 377971dc89a3..97d7b5f3d30a 100644
 --- a/tools/perf/builtin-top.c
 +++ b/tools/perf/builtin-top.c
 @@ -69,6 +69,10 @@
@@ -253,7 +255,7 @@ index 377971d..97d7b5f 100644
  	if (top.evlist == NULL)
  		return -ENOMEM;
 diff --git a/tools/perf/config/Makefile b/tools/perf/config/Makefile
-index f30ac5e..68575b9 100644
+index f30ac5e5d271..68575b9edd30 100644
 --- a/tools/perf/config/Makefile
 +++ b/tools/perf/config/Makefile
 @@ -173,6 +173,7 @@ CORE_FEATURE_TESTS =			\
@@ -290,7 +292,7 @@ index f30ac5e..68575b9 100644
    CFLAGS += -DNO_LIBPERL
  else
 diff --git a/tools/perf/config/feature-checks/Makefile b/tools/perf/config/feature-checks/Makefile
-index 64c84e5..b574b70 100644
+index 64c84e5f0514..b574b7082199 100644
 --- a/tools/perf/config/feature-checks/Makefile
 +++ b/tools/perf/config/feature-checks/Makefile
 @@ -22,6 +22,7 @@ FILES=					\
@@ -311,8 +313,23 @@ index 64c84e5..b574b70 100644
  test-gtk2.bin:
  	$(BUILD) $(shell $(PKG_CONFIG) --libs --cflags gtk+-2.0 2>/dev/null)
  
+diff --git a/tools/perf/config/feature-checks/test-libpfm.c b/tools/perf/config/feature-checks/test-libpfm.c
+new file mode 100644
+index 000000000000..b13a07172023
+--- /dev/null
++++ b/tools/perf/config/feature-checks/test-libpfm.c
+@@ -0,0 +1,9 @@
++#include <sys/types.h>
++#include <perfmon/pfmlib.h>
++
++int main(void)
++{
++	(void)pfm_initialize();
++	return 0;
++}
++
 diff --git a/tools/perf/tests/make b/tools/perf/tests/make
-index 69a71ff..4dd9334 100644
+index 69a71ff84e01..4dd9334c6872 100644
 --- a/tools/perf/tests/make
 +++ b/tools/perf/tests/make
 @@ -31,6 +31,7 @@ make_no_libdw_dwarf_unwind := NO_LIBDW_DWARF_UNWIND=1
@@ -340,7 +357,7 @@ index 69a71ff..4dd9334 100644
  run += make_help
  run += make_doc
 diff --git a/tools/perf/util/parse-events.c b/tools/perf/util/parse-events.c
-index 1e15df1..efbd692 100644
+index 1e15df10a88c..efbd692765dc 100644
 --- a/tools/perf/util/parse-events.c
 +++ b/tools/perf/util/parse-events.c
 @@ -17,6 +17,11 @@
@@ -594,7 +611,7 @@ index 1e15df1..efbd692 100644
 +}
 +#endif
 diff --git a/tools/perf/util/parse-events.h b/tools/perf/util/parse-events.h
-index df094b4..9b40833 100644
+index df094b4ed5ed..9b408332b50c 100644
 --- a/tools/perf/util/parse-events.h
 +++ b/tools/perf/util/parse-events.h
 @@ -33,6 +33,11 @@ extern int parse_events(struct perf_evlist *evlist, const char *str);
@@ -610,7 +627,7 @@ index df094b4..9b40833 100644
  
  enum {
 diff --git a/tools/perf/util/pmu.c b/tools/perf/util/pmu.c
-index 7a811eb..157f528 100644
+index 7a811eb61f75..157f528ee227 100644
 --- a/tools/perf/util/pmu.c
 +++ b/tools/perf/util/pmu.c
 @@ -435,6 +435,17 @@ static struct perf_pmu *pmu_find(const char *name)
@@ -632,7 +649,7 @@ index 7a811eb..157f528 100644
  {
  	/*
 diff --git a/tools/perf/util/pmu.h b/tools/perf/util/pmu.h
-index c14a543..83bf312 100644
+index c14a543ce1f3..83bf312847f3 100644
 --- a/tools/perf/util/pmu.h
 +++ b/tools/perf/util/pmu.h
 @@ -41,6 +41,7 @@ void perf_pmu__set_format(unsigned long *bits, long from, long to);
