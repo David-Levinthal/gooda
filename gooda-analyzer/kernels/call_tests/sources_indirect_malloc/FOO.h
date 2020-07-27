@@ -1,0 +1,18 @@
+typedef long (*FOO_pt) (long);
+FOO_pt *FOO_array;
+extern long FOO_000_000_000 (long n);
+extern long FOO_000_000_001 (long n);
+extern long FOO_000_000_002 (long n);
+extern long FOO_000_000_003 (long n);
+extern long FOO_000_001_000 (long n);
+extern long FOO_000_001_001 (long n);
+extern long FOO_000_001_002 (long n);
+extern long FOO_000_001_003 (long n);
+extern long FOO_001_000_000 (long n);
+extern long FOO_001_000_001 (long n);
+extern long FOO_001_000_002 (long n);
+extern long FOO_001_000_003 (long n);
+extern long FOO_001_001_000 (long n);
+extern long FOO_001_001_001 (long n);
+extern long FOO_001_001_002 (long n);
+extern long FOO_001_001_003 (long n);
