@@ -79,7 +79,7 @@ static int create_main(int max_so, int max_chain, int max_depth, int* rand_array
 	fprintf (fp_main,"//\n");
 	fprintf (fp_main,"//\n");
 	fprintf (fp_main,"#include <stdio.h>\n");
-	fprintf (fp,"#include <stdlib.h>\n");
+	fprintf (fp_main,"#include <stdlib.h>\n");
 	fprintf (fp_main,"#include \"FOO.h\"\n");
 	fprintf (fp_main,"\n");
 	fprintf (fp_main,"int main(int argc, char* argv[])\n");
