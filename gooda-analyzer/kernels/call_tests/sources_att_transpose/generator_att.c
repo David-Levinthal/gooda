@@ -3,6 +3,7 @@
 #include <strings.h>
 #include <fcntl.h>
 #include <syscall.h>
+#include <stdlib.h>
 
 static int entries = 0;
 static int depth_max = 0;
@@ -26,7 +27,7 @@ static int genC (int star_so, int chain, int depth, FILE* fp, FILE* fp_header)
 	fprintf (fp,"\t__asm__( \n");
 
 	for(j=0;j<50;j++){
-		fprintf (fp,"\t\"xorq    %rdx, %rdx\\n\\t\"\n");
+		fprintf (fp,"\t\"xorq    %%rdx, %%rdx\\n\\t\"\n");
 		}
 	fprintf (fp,"\t);\n");
 
@@ -74,6 +75,7 @@ static int create_main(int max_so, int max_chain, int max_depth)
 	fprintf (fp_main,"//\n");
 	fprintf (fp_main,"//\n");
 	fprintf (fp_main,"#include <stdio.h>\n");
+	fprintf (fp_main,"#include <stdlib.h>\n");
 	fprintf (fp_main,"#include \"FOO.h\"\n");
 	fprintf (fp_main,"\n");
 	fprintf (fp_main,"int main(int argc, char* argv[])\n");
