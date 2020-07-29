@@ -16,4 +16,4 @@ for (( i = depth-1 ; i >= 0; i-- )) ; do
 	[ ! -f libFOO-level$j.so ] && tail=""
 	gcc --shared -o libFOO-level$i.so FOO_[0-9]*_[0-9]*_$lev3.o $tail
 done
-gcc -o FOO_dynamic -O0 -g FOO_main.o -L. -lFOO-level0
+gcc -o FOO_dynamic -O0 -g FOO_main.o -Wl,--copy-dt-needed-entries -L. -lFOO-level0

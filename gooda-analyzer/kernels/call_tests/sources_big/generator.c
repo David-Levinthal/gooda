@@ -3,7 +3,7 @@
 #include <strings.h>
 #include <fcntl.h>
 #include <syscall.h>
-#includes <stdlib.h>
+#include <stdlib.h>
 
 static int entries = 0;
 static int depth_max = 0;
@@ -24,12 +24,12 @@ static int genC (int star_so, int chain, int depth, FILE* fp, FILE* fp_header)
 	fprintf (fp,"\n");
 	fprintf (fp,"long FOO_%03d_%03d_%03d (long n)\n", star_so,chain,depth);
 	fprintf (fp,"{\n");
-	fprintf (fp,"\t_asm { \n");
+	fprintf (fp,"\t__asm__( \n");
 
 	for(j=0;j<50;j++){
 		fprintf (fp,"\t\"xorq    %%rdx, %%rdx\\n\\t\"\n");
 		}
-	fprintf (fp,"\t}\n");
+	fprintf (fp,"\t);\n");
 
 	if(depth < depth_max-1) {
 

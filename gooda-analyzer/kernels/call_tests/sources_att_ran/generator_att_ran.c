@@ -11,6 +11,8 @@ static int depth_max = 0;
 #define PERM 666
 
 #define paste(front, back) front ## back
+int chk_full(int* rand_array, int max_blocks);
+void get_rand(int* rand_array, int max_blocks);
 
 static int genC (int star_so, int chain, int depth, FILE* fp, FILE* fp_header, int* rand_array)
 {

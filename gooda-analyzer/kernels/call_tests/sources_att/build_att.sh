@@ -1,4 +1,5 @@
 #! /bin/bash
+set -x
 export LD_LIBRARY_PATH=./:$LD_LIBRARY_PATH
 gcc -o generator_att generator_att.c
 ./generator_att $1 $2 $3
