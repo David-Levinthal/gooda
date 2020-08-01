@@ -270,7 +270,7 @@ int main(int argc, char ** argv)
 	for(i=0;i<line_count;i++)index_test[i] = 0;
 	if(num_seg == 1)
 		{
-		for(i=0; i<line_count-1; i++)index[i] = i;
+		for(i=0; i<line_count; i++)index[i] = i;
 		}
 	else
 		{
@@ -353,7 +353,10 @@ int main(int argc, char ** argv)
 	fprintf(stderr," finished zeroing buf ret = %p\n",ret);
 
 //	for(jj=0;jj<line_count-1; jj++)array[jj*(size_t)array_stride] = (size_t) &array[(size_t)array_stride*(jj+1)];
-	for(jj=0;jj<line_count-1;jj++)array[index[jj]*array_stride] = (size_t)&array[index[jj+1]*array_stride];
+	for(jj=0;jj<line_count-1;jj++){
+		array[index[jj]*array_stride] = (size_t)&array[index[jj+1]*array_stride];
+	}
+
 	fprintf(stderr," target of last element in loop = %zx\n",(size_t)(array[line_count-1]-(size_t)buf1));
 	array[(size_t)array_stride*(size_t)index[line_count-1]] = (size_t)&array[0];
 

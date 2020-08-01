@@ -263,7 +263,7 @@ int main(int argc, char ** argv)
 		}
 	if(num_seg == 1)
 		{
-		for(i=0; i<line_count-1; i++)index[i] = i;
+		for(i=0; i<line_count; i++)index[i] = i;
 		}
 	else
 		{
