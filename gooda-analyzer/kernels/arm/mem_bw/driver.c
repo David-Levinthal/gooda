@@ -193,6 +193,8 @@ main(int argc, char ** argv)
 	buf3 = buf3 + (0x1000 - (unsigned int)buf3 & 0xFFF) + offset_c;
 	fprintf(stderr," buf3 = %p\n",buf3);
 */
+	buf_size = sizeof(double)*len;
+
 	buf1 = (char*) mmap(NULL,buf_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON , fd, offset);
 	buf2 = (char*) mmap(NULL,buf_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON , fd, offset);
 	buf3 = (char*) mmap(NULL,buf_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON , fd, offset);
