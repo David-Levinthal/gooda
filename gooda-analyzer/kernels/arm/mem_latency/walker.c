@@ -20,6 +20,7 @@ limitations under the License.
 #include <fcntl.h>
 #include <stdio.h>
 #include <time.h>
+#include <sys/time.h>
 #include <malloc.h>
 #include <string.h>
 #include <unistd.h>
@@ -31,15 +32,16 @@ limitations under the License.
 
 typedef unsigned long long u64;
 #define DECLARE_ARGS(val, low, high)    unsigned low, high
-#define EAX_EDX_VAL(val, low, high)     ((low) | ((u64)(high) << 32))
-#define EAX_EDX_ARGS(val, low, high)    "a" (low), "d" (high)
-#define EAX_EDX_RET(val, low, high)     "=a" (low), "=d" (high)
+
+#define isb()		asm volatile("isb" : : : "memory")
 
 double drand48(void);
 struct timespec current_kernel_time(void);
 
 #define MAX_CPUS        2048
 #define NR_CPU_BITS     (MAX_CPUS>>3)
+extern size_t * reader(int len, size_t * buf1);
+	
 static int
 pin_cpu(pid_t pid, unsigned int cpu)
 {
@@ -48,7 +50,7 @@ pin_cpu(pid_t pid, unsigned int cpu)
        memset(my_mask, 0, sizeof(my_mask));
 
        if (cpu >= MAX_CPUS)
-               errx(1, "this program supports only up to %d CPUs", MAX_CPUS);
+               errx(1, "this program supports only up to %d CPUs [got %x]", MAX_CPUS, cpu);
 
        my_mask[cpu>>6] = 1ULL << (cpu&63);
 
@@ -103,6 +105,25 @@ void rndm_list(int* list, int n)
 //	printf("\n");
 }
 
+static inline u64 _rdtsc(void)
+{
+	u64 cval;
+
+	isb();
+	asm volatile("mrs %0, cntvct_el0" : "=r" (cval));
+
+	return cval;
+}
+
+static inline u64 _loc_freq(void)
+{
+        u64 cval;
+
+        isb();
+        asm volatile("mrs %0, cntfrq_el0" : "=r" (cval));
+
+        return cval;
+}
 
 void usage()
 	{
@@ -122,6 +143,8 @@ void usage()
 	fprintf(stderr,"           By default a total of 1.024 Billion iterations of the cacheline walk are executed. N >= 1\n");
 	fprintf(stderr," -L   -L signifies that mmap should be invoked with HUGE_PAGE option. For this to work the machine must have been booted with a hugepages option\n");
 	fprintf(stderr,"           locking down some number of contiguous memory for allocation as huge pages. This option changes the page_size used by the stride evaluation\n");
+	fprintf(stderr," -pN  -p signifies page size (defaults to 4K\n");
+	fprintf(stderr," -IN  -I signifies number of iterations (default 100)\n");
 	}
 
 int main(int argc, char ** argv)
@@ -134,7 +157,8 @@ int main(int argc, char ** argv)
 	off_t offset = 0;
 	int len=10240000, iter=100,mult=1,main_ret=0;
 	double iterations;
-	size_t start, stop, run_time, call_start, call_stop, inner_run_time=0,call_run_time,total_bytes=0;
+	size_t start, stop, run_time, call_start, call_stop, call_run_time,total_bytes=0;
+	size_t sum_run_time=0, run_time_k=0;
 	__pid_t pid=0;
 	size_t buf_size,jj,zero_loop, buf_by_num_seg,ind;
 	size_t num_pages, page_size, var_size, line_size;
@@ -146,6 +170,10 @@ int main(int argc, char ** argv)
 	int* index, *index_test, lc_by_num_seg,count, num_seg=32, huge=0;
 	unsigned int bitmask, *intstar;
 	struct timespec start_t, stop_t;
+	size_t total=0;
+	struct timeval start_time, stop_time;
+	int ret_int;
+	size_t gotten_time, freq_val;
 
 	page_size = 4096;
 	line_size = 64;
@@ -153,13 +181,19 @@ int main(int argc, char ** argv)
 //	process input arguments
 
 	if(argc < 6){
-		fprintf(stderr,"the random walker requires at least 6 arguments (only the 7th in the list below is optional), there were %d\n",argc);
+		fprintf(stderr,"the random walker requires at least 6 arguments (only the 7th onward in the list below is optional), there were %d\n",argc);
 		usage();
 		err(1,"insufficient invocation arguments");
 		}
 
-	while ((c = getopt(argc, argv, "i:r:l:s:S:m:L:c")) != -1) {
+	while ((c = getopt(argc, argv, "p:I:i:r:l:s:S:m:L:c")) != -1) {
 		switch(c) {
+		case 'I':
+			iter = atoi(optarg);
+			break;
+		case 'p':
+			page_size = 1024*atoi(optarg);
+			break;
 		case 'i':
 			cpu = atoi(optarg);
 			break;
@@ -345,25 +379,33 @@ int main(int argc, char ** argv)
 // run the walker
 	printf(" calling walker %d times which loops  %d times on buffer of %d lines with a stride of %d, for a total size of %zu\n",iter,len,line_count,stride,buf_size);
 	call_start = _rdtsc();
+	ret_int = gettimeofday(&start_time, NULL);
 	for(i=0;i<iter;i++){
 		start = _rdtsc();
 //		start_t = current_kernel_time();
-		ret_val = reader(len,array);
+		ret_val = (size_t) reader(len,array);
+		total+= ret_val;
 //	fprintf(stderr, " retval = %ld\n",ret_val);
-//		start_t = current_kernel_time();
+//		stop_t = current_kernel_time();
 		stop = _rdtsc();
 //		run_time = (stop_t.tv_sec - start_t.tv_sec)*1000000000;
-//		run_time += stop_t.tv_nsec - start_t.tv_nsec;
-		run_time = stop - start;
-		inner_run_time += run_time;
+//		run_time_k += stop_t.tv_nsec - start_t.tv_nsec;
+		sum_run_time += stop - start;
 		}
 	printf(" done\n");
 	call_stop = _rdtsc();
+	freq_val = _loc_freq();
+	ret_int = gettimeofday(&stop_time, NULL);
+	gotten_time = (size_t) (stop_time.tv_sec - start_time.tv_sec)*1000000;
+	gotten_time += (size_t)(stop_time.tv_usec - start_time.tv_usec);
 	call_run_time = call_stop - call_start;
 	printf(" run time = %zd\n",call_run_time);
-	printf(" inner time = %zd\n",inner_run_time);
+	printf(" sum_run time = %zd\n",sum_run_time);
+	printf(" gettimeofday_run time = %zd\n",gotten_time);
+	printf("frequency = %zd\n",freq_val);
+	printf("total = %lu\n",total);
 
 //  printout
-	printf(" average cycles per iteration = %f\n", (double)inner_run_time/iterations);
+	printf(" average cycles per iteration = %f\n", (double)call_run_time/iterations);
 	return main_ret;
 }
