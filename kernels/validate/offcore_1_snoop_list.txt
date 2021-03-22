@@ -1,0 +1,13 @@
+offcore_response_1:any_request:any_response
+offcore_response_1:any_request:llc_miss_local:snp_any
+offcore_response_1:any_data:llc_miss_local:snp_any
+offcore_response_1:any_data:llc_hitmesf:snp_any
+offcore_response_1:dmnd_data_rd:llc_hitm:snp_any
+offcore_response_1:dmnd_data_rd:llc_hitmesf:snp_any
+offcore_response_1:dmnd_data_rd:llc_hitmesf:hitm
+offcore_response_1:dmnd_data_rd:llc_hitmesf:snp_none
+offcore_response_1:dmnd_data_rd:llc_hitmesf:snp_miss
+offcore_response_1:dmnd_data_rd:llc_hitmesf:snp_not_needed
+offcore_response_1:dmnd_data_rd:llc_hitmesf:snp_fwd
+offcore_response_1:dmnd_data_rd:llc_hitmesf:snp_no_fwd
+offcore_response_1:dmnd_data_rd:llc_hitmesf:snp_any
