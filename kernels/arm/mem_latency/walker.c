@@ -380,11 +380,13 @@ int main(int argc, char ** argv)
 	printf(" calling walker %d times which loops  %d times on buffer of %d lines with a stride of %d, for a total size of %zu\n",iter,len,line_count,stride,buf_size);
 	call_start = _rdtsc();
 	ret_int = gettimeofday(&start_time, NULL);
+        size_t * pbuf = array;
 	for(i=0;i<iter;i++){
 		start = _rdtsc();
 //		start_t = current_kernel_time();
-		ret_val = (size_t) reader(len,array);
-		total+= ret_val;
+//		ret_val = (size_t) reader(len,array);
+		ret_val = (size_t) (pbuf = reader(len,pbuf));
+		total+= len;
 //	fprintf(stderr, " retval = %ld\n",ret_val);
 //		stop_t = current_kernel_time();
 		stop = _rdtsc();
@@ -394,8 +396,16 @@ int main(int argc, char ** argv)
 		}
 	printf(" done\n");
 	call_stop = _rdtsc();
-	freq_val = _loc_freq();
 	ret_int = gettimeofday(&stop_time, NULL);
+//return to initializiing cpu for final cleanup
+	if(pin_cpu(pid, cpu) == -1) {
+		err(1,"failed to set affinity");
+		}
+	else{
+		fprintf(stderr," process pinned to core %d\n",cpu);
+		}
+
+	freq_val = _loc_freq();
 	gotten_time = (size_t) (stop_time.tv_sec - start_time.tv_sec)*1000000;
 	gotten_time += (size_t)(stop_time.tv_usec - start_time.tv_usec);
 	call_run_time = call_stop - call_start;
@@ -407,5 +417,6 @@ int main(int argc, char ** argv)
 
 //  printout
 	printf(" average cycles per iteration = %f\n", (double)call_run_time/iterations);
+	munmap(buf1,buf_size);
 	return main_ret;
 }
