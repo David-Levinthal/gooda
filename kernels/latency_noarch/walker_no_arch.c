@@ -38,6 +38,8 @@ typedef unsigned long long u64;
 double drand48(void);
 struct timespec current_kernel_time(void);
 
+extern size_t * reader(int len, size_t * buf1);
+
 #define MAX_CPUS        2048
 #define NR_CPU_BITS     (MAX_CPUS>>3)
 static int
@@ -344,11 +346,13 @@ int main(int argc, char ** argv)
 
 // run the walker
 	printf(" calling walker %d times which loops  %d times on buffer of %d lines with a stride of %d, for a total size of %zu\n",iter,len,line_count,stride,buf_size);
+        size_t * pbuf = array;
 //	call_start = _rdtsc();
 	for(i=0;i<iter;i++){
 //		start = _rdtsc();
 //		start_t = current_kernel_time();
-		ret_val = reader(len,array);
+                ret_val = (size_t) (pbuf = reader(len,pbuf));
+//		ret_val = reader(len,array);
 //	fprintf(stderr, " retval = %ld\n",ret_val);
 //		start_t = current_kernel_time();
 //		stop = _rdtsc();
@@ -357,6 +361,12 @@ int main(int argc, char ** argv)
 //		call_run_time += run_time;
 		}
 	printf(" done\n");
+	if(pin_cpu(pid, cpu) == -1) {
+                err(1,"failed to set affinity");
+                }
+        else{
+                fprintf(stderr," process pinned to core %d\n",cpu);
+                }
 //	call_stop = _rdtsc();
 //	call_run_time = call_stop - call_start;
 //	printf(" run time = %zd\n",call_run_time);
