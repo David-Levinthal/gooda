@@ -133,6 +133,8 @@ void usage()
 	fprintf(stderr,"           By default a total of 1.024 Billion iterations of the cacheline walk are executed. N >= 1\n");
 	fprintf(stderr," -L   -L signifies that mmap should be invoked with HUGE_PAGE option. For this to work the machine must have been booted with a hugepages option\n");
 	fprintf(stderr,"           locking down some number of contiguous memory for allocation as huge pages. This option changes the page_size used by the stride evaluation\n");
+	fprintf(stderr," -BN  -B signifies bytes in usedd line stride N indicates the number of bytes in the stride assuming page stride is 0. default is 64\n");
+
 	}
 
 int main(int argc, char ** argv)
@@ -169,7 +171,7 @@ int main(int argc, char ** argv)
 		err(1,"insufficient invocation arguments");
 		}
 
-	while ((c = getopt(argc, argv, "i:r:l:s:S:m:L:c")) != -1) {
+	while ((c = getopt(argc, argv, "i:r:l:s:S:m:L:B:")) != -1) {
 		switch(c) {
 		case 'i':
 			cpu = atoi(optarg);
