@@ -85,7 +85,8 @@ main(int argc, char ** argv)
 	double *a, *b, *c, xx=0.01, bw, avg_bw, best_bw=-1.0;
 	char * buf1, *buf2, *buf3;
 	int i,j,k,offset_a=0,offset_b=0,offset_c=0, mult=1,iter=100, c_val;
-	int len,mem_level, level_size[4], cpu, cpu_run, bytes_per,scale;
+	int mem_level, level_size[4], cpu, cpu_run, bytes_per,scale;
+	size_t len;
 	unsigned long long start, stop, run_time, call_start, call_stop, call_run_time,total_bytes=0;
 	__pid_t pid=0;
 	int cpu_setsize;
@@ -148,14 +149,14 @@ main(int argc, char ** argv)
 	level_size[1]=L2;
 	level_size[2]=L3;
 	level_size[3]=L4;
-	fprintf(stderr, "len = %d, mem_level = %d, iter = %d, mult = %d\n",len, mem_level, iter,mult);
+	fprintf(stderr, "len = %zd, mem_level = %d, iter = %d, mult = %d\n",len, mem_level, iter,mult);
 	len = level_size[mem_level]/32;
-	fprintf(stderr, "len = %d, mem_level = %d, iter = %d, mult = %d\n",len, mem_level, iter,mult);
+	fprintf(stderr, "len = %zd, mem_level = %d, iter = %d, mult = %d\n",len, mem_level, iter,mult);
 	scale = level_size[3]/(32*len);
-	fprintf(stderr, "len = %d, mem_level = %d, iter = %d, mult = %d, scale = %d\n",len, mem_level, iter,mult,scale);
+	fprintf(stderr, "len = %zd, mem_level = %d, iter = %d, mult = %d, scale = %d\n",len, mem_level, iter,mult,scale);
 	iter =iter*scale*mult;
 	
-	fprintf(stderr, "len = %d, mem_level = %d, iter = %d, mult = %d\n",len, mem_level, iter,mult);
+	fprintf(stderr, "len = %zd, mem_level = %d, iter = %d, mult = %d\n",len, mem_level, iter,mult);
 
 // malloc and initialize buffers
 	buf1 = malloc(sizeof(double)*len + 4096 + 1024);
@@ -189,7 +190,7 @@ main(int argc, char ** argv)
                 }
 
 // run the triad
-	printf(" calling triad %d times with len = %d\n",iter,len);
+	printf(" calling triad %d times with len = %zd\n",iter,len);
 	call_start = _rdtsc();
 	for(i=0;i<iter;i++){
 		start = _rdtsc();
