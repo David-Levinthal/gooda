@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 gcc -O0 uncond_jmp.c -o generator
 gcc -O0 uncond_jmp16.c -o generator16
 gcc -O0 uncond_jmpq.c -o generatorq
