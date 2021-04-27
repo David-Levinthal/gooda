@@ -45,6 +45,7 @@ static int create_main(int max_depth)
 	fprintf (fp_main,"//\n");
 	fprintf (fp_main,"//\n");
 	fprintf (fp_main,"#include <stdio.h>\n");
+        fprintf (fp_main,"#include <stdlib.h>\n");
 	fprintf (fp_main,"\n");
 	fprintf (fp_main,"int main(int argc, char* argv[])\n");
 	fprintf (fp_main,"{\n");

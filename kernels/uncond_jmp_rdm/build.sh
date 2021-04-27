@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 gcc -O0 uncond_rdm_jmp64.c -o generator64
 gcc -O0 uncond_rdm_jmp16.c -o generator16
 for (( i = 2 ; i < 10 ; i++ )) ; do
