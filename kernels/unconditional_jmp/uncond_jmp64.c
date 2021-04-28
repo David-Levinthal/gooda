@@ -48,12 +48,11 @@ static int create_main(int max_depth)
 	fprintf (fp_main,"\tfor(k=0;k<j;k++){\n");
 
         fprintf (fp_main,"\t__asm__( \n");
-	fprintf (fp_main,"\t\".align 16\\n\\t\"\n");
+	fprintf (fp_main,"\t\".align 64\\n\\t\"\n");
 
         for(j=0;j<max_depth;j++){
 		fprintf (fp_main,"\t\"jmp LP_%06d\\n\\t\"\n",j);
 		fprintf (fp_main,"\t\"xorq   %%rdx, %%rcx\\n\\t\"\n");
-		fprintf (fp_main,"\t\".align 16\\n\\t\"\n");
 		fprintf (fp_main,"\t\"LP_%06d:\\n\\t\"\n",j);
                 }
         fprintf (fp_main,"\t);\n");

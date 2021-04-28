@@ -18,6 +18,7 @@ limitations under the License.
 #include <strings.h>
 #include <fcntl.h>
 #include <syscall.h>
+#include <stdlib.h>
 
 static int entries = 0;
 static int depth_max = 0;
