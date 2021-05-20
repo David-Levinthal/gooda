@@ -13,10 +13,11 @@ while [ $count -lt $lines ]; do
 	echo $a
 	echo "${a%?}"
 	c="${a%?}"
-	b="$beg$c$end"
+	b="$c"
 	echo $b
-#perf stat -e $b -a -x @ --aggr-socket -- $2 $3 $4 $5 $6 $7 $8 $9
-emon -t0 -q -experimental -C $b $2 $3 $4 $5 $6 $7 $8 $9
+perf stat -A -C2 -e $b -- $2 $3 $4 $5 $6 $7 $8 $9
+#perf stat -A -C2 --pfm-events $b -- $2 $3 $4 $5 $6 $7 $8 $9
+#emon -t0 -q -experimental -C $b $2 $3 $4 $5 $6 $7 $8 $9
 	let count=count+4
 done
 let count=count-4
@@ -25,8 +26,9 @@ if [ "$remain" -gt 0 ]; then
 	a=`head -n $lines $1 | tail -n $remain | tr '[:space:]' ','`
 #!	echo "${a%?}"
 	c="${a%?}"
-	b="$beg$c$end"
+	b="$c"
 	echo $b
-#perf stat -e $b -a -x @ --aggr-socket -- $2 $3 $4 $5 $6 $7 $8 $9
-emon -t0 -q -experimental -C $b $2 $3 $4 $5 $6 $7 $8 $9
+perf stat -A -C2 -e $b -- $2 $3 $4 $5 $6 $7 $8 $9
+#perf stat -A -C2 --pfm-events $b -- $2 $3 $4 $5 $6 $7 $8 $9
+#emon -t0 -q -experimental -C $b $2 $3 $4 $5 $6 $7 $8 $9
 fi
