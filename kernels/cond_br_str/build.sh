@@ -1,5 +1,5 @@
 #! /bin/bash
-gcc -O3 -c dumb_compare.c
+gcc -O0 -c dumb_compare.c
 gcc -O3 -c FOO1.c
 gcc -O3 -c FOO2.c
 gcc -O3 -c triad.c

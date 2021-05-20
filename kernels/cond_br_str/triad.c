@@ -12,7 +12,7 @@ long triad(int len, char* str_arg, char* str_arg2, double *restrict a, double *r
 	         bytes = FOO1(a,b,c);
 	 }
 	 else {
-	         bytes = FOO2(a,b,c);
+	         bytes = FOO2(a,c,b);
 	 }
 	 return bytes;
 }

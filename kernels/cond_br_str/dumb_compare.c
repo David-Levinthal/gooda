@@ -3,22 +3,14 @@
 #include <string.h>
 int dumb_compare(char* s1, char*s2)
 {
-	int i,j,k, retval;
-	retval = (s1[0]-s2[0]);
-	retval += (s1[1]-s2[1]);
-	retval += (s1[2]-s2[2]);
-	retval += (s1[3]-s2[3]);
-	retval += (s1[4]-s2[4]);
-	retval += (s1[5]-s2[5]);
-	retval += (s1[6]-s2[6]);
-	retval += (s1[7]-s2[7]);
-	retval += (s1[8]-s2[8]);
-	retval += (s1[9]-s2[9]);
-	retval += (s1[10]-s2[10]);
-	retval += (s1[11]-s2[11]);
-	retval += (s1[12]-s2[12]);
-	retval += (s1[13]-s2[13]);
-	retval += (s1[14]-s2[14]);
-	retval += (s1[15]-s2[15]);
+	int i,j,k, retval,len1,len2;
+	len1 =strlen(s1);
+	len2 =strlen(s2);
+        if(len1 != len2){
+		fprintf(stderr, "from dumb_compare..len1 = %d, does not equal len2 = %d\n",len1,len2);
+		exit(1);
+		}
+	retval = 0;
+	for(i=0;i<len1; i++) retval +=(s1[i] - s2[i]);
 	return retval;
 }

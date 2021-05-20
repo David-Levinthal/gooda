@@ -136,8 +136,6 @@ int main(int argc, char ** argv)
 {
 	char *buf1, *buf2, *buf3;
         char triad_name[100], triad_base[]="triad_";
-	char string1[]="this_is_string_1";
-	char string2[]="this_is_string_2";
 	char * string_array[PRIME_VAL], *str_arg;
 	int triad_base_len = 6, C;
 	void * ret;
@@ -156,7 +154,7 @@ int main(int argc, char ** argv)
 	cpu_set_t mask;
 
 	int *pattern;
-	int step, bad;
+	int step, bad,counter;
 	int* index, *index_test, lc_by_num_seg,count, num_seg=32, huge=0;
 	unsigned int bitmask, *intstar;
 	struct timespec start_t, stop_t;
@@ -168,6 +166,15 @@ int main(int argc, char ** argv)
 	typedef long (*triad_pt) (int len, char* str_arg, char* str_arg2, double *restrict a, double *restrict b, double *restrict c);
         triad_pt *triad_array;
 
+	char string1[1024], string2[1024];
+
+	strncpy(string1,"this_is_string_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa_1",1024);
+	strncpy(string2,"this_is_string_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa_2",1024);
+/*
+	fprintf(stderr, " string1 = %s\n",string1);
+	fprintf(stderr, " string2 = %s\n",string2);
+*/
+	fprintf(stderr," string length = %ld\n",strlen(string1));
 	page_size = 4096;
 	line_size = 64;
 	len = ARRAY_LEN;
@@ -247,6 +254,12 @@ int main(int argc, char ** argv)
 			if(ranval > 0.5)string_array[i] = string2;
 			}
 		}
+/*
+	for(i=0; i<10; i++)fprintf(stderr, "i= %d, string[%d] = %s\n",i,i,string_array[i]);
+        counter = 0;
+	for(i=0; i<line_count; i++) if(strcmp(string_array[i],string2) == 0)counter++;
+	fprintf(stderr," counter = %d\n",counter);
+*/
 //	exit(1);
 //	fprintf(stderr," creating a buffer , buffer1_size = %zd\n",buf_size1);
 
