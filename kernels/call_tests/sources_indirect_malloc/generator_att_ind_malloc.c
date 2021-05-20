@@ -20,10 +20,15 @@ static int genC (int star_so, int chain, int depth, FILE* fp, FILE* fp_header)
 	fprintf (fp,"//\n");
 	fprintf (fp,"//\n");
 	fprintf (fp,"#include <stdio.h>\n");
-	fprintf (fp,"#include \"FOO.h\"\n");
+	fprintf (fp,"typedef long (*FOO_pt) (long);\n");
+	fprintf (fp,"extern FOO_pt *FOO_global;\n");
 	fprintf (fp,"\n");
 	fprintf (fp,"long FOO_%03d_%03d_%03d (long n)\n", star_so,chain,depth);
 	fprintf (fp,"{\n");
+	fprintf (fp,"#include \"FOO.h\"\n");
+	fprintf (fp,"\tFOO_array = FOO_global;\n");
+//	fprintf (fp,"\tfprintf(stderr,\" %%ld \\n\",n);");
+	fprintf (fp,"\n");
 	fprintf (fp,"\t__asm__( \n");
 
 	for(j=0;j<50;j++){
@@ -79,16 +84,19 @@ static int create_main(int max_so, int max_chain, int max_depth)
 	fprintf (fp_main,"#include <stdio.h>\n");
 	fprintf (fp_main,"#include <stdlib.h>\n");
 	fprintf (fp_main,"#include <malloc.h>\n");
-	fprintf (fp_main,"#include \"FOO.h\"\n");
+	fprintf (fp_main,"typedef long (*FOO_pt) (long);\n");
+	fprintf (fp_main,"FOO_pt *FOO_global;\n");
 	fprintf (fp_main,"\n");
 	fprintf (fp_main,"int main(int argc, char* argv[])\n");
 	fprintf (fp_main,"{\n");
+	fprintf (fp_main,"#include \"FOO.h\"\n");
 	fprintf (fp_main,"\tlong i=0;\n");
-	fprintf (fp_main,"\tlong j,k,m,n=0;\n");
-	fprintf (fp_main,"\tj=atol(argv[1]);\n");
+	fprintf (fp_main,"\tlong j,k,m,n=0,loop;\n");
+	fprintf (fp_main,"\tloop=atol(argv[1]);\n");
 
 	fprintf (fp_main,"\tm=%d;\n",max_depth*max_chain*max_so);
 	fprintf (fp_main,"\tFOO_array = (FOO_pt *) malloc(sizeof(FOO_pt)*m);\n");
+	fprintf (fp_main,"\tFOO_global = FOO_array;\n");
 	for(i=0; i<max_so; i++){
 	for(j=0; j<max_chain; j++){
 	for(k=0; k<max_depth; k++){
@@ -98,7 +106,7 @@ static int create_main(int max_so, int max_chain, int max_depth)
 	}
 	}
 
-	fprintf (fp_main,"\tfor(k=0;k<j;k++){\n");
+	fprintf (fp_main,"\tfor(k=0;k<loop;k++){\n");
 	fprintf (fp_main,"\tn=0;\n");
 
 

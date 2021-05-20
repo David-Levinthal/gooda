@@ -81,9 +81,9 @@ static int create_main(int max_so, int max_chain, int max_depth)
 	fprintf (fp_main,"int main(int argc, char* argv[])\n");
 	fprintf (fp_main,"{\n");
 	fprintf (fp_main,"\tlong i=0;\n");
-	fprintf (fp_main,"\tlong j,k;\n");
-	fprintf (fp_main,"\tj=atol(argv[1]);\n");
-	fprintf (fp_main,"\tfor(k=0;k<j;k++){\n");
+	fprintf (fp_main,"\tlong j,k,loop;\n");
+	fprintf (fp_main,"\tloop=atol(argv[1]);\n");
+	fprintf (fp_main,"\tfor(k=0;k<loop;k++){\n");
 
 
 	for(i=0; i<max_so; i++){
