@@ -195,7 +195,7 @@ int main(int argc, char ** argv)
 			huge=1;
 			page_size = 2 * 1024 * 1024;
 			break;
-		case 'c':
+		case 'B':
 			line_size = atoi(optarg);
 			break;
 		default:
