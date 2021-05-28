@@ -122,7 +122,7 @@ void usage()
 	fprintf(stderr," -rM  -r signifies run M indicates which core the pointer walker should be executed on\n");
 	fprintf(stderr," -lN  -l signifies lines N indicates the number of lines used in the pointer chase loop, this size controls in which level of cache/memory the buffer will reside\n");
 	fprintf(stderr," -sN  -s signifies stride N indicates the number of pages in the stride. thus the stride = N*page_size + 64. N should be 0 to avoid DTLB effects\n");
-	fprintf(stderr," -SN  -S signifies segments N indicates the number of segments that the buffer will be divided into.\n");
+	fprintf(stderr," -SN  -S signifies segments N indicates the number of lines in the blocks that the buffer will be divided into for randomization.\n");
 	fprintf(stderr,"         The number of segments must be greater than the number of memory access streams the HW prefetcher can track for the randomization to defeat the HW prefetcher.\n");
 	fprintf(stderr,"          if it is set to 1 then the linked list will walk through the buffer in order. \n");
 	fprintf(stderr,"          This will yield an open page latency if the HW prefetchers are completely disabled and the buffer is much larger than the LLC.\n");
