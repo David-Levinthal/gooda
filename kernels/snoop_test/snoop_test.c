@@ -42,7 +42,7 @@ typedef unsigned long long u64;
 
 int exchange_flag, shared, seg_size;
 size_t *array, *write_pointer, *read_pointer;
-uint64_t read_sum_tsc=0, total_lines;
+uint64_t read_sum_tsc=0, write_sum_tsc=0, total_lines;
 __pid_t pid=0;
 int cpu, cpu_read, cpu_write;
 
@@ -161,13 +161,16 @@ void * driver0(void * arg)
 		}
 	fprintf(stderr," from read thread, line_count = %ld, TSC sum = %lu, latency = %g\n",
 			line_count, read_sum_tsc,(double)read_sum_tsc/(double)line_count);
+	fprintf(stderr, " read latency = %g, write latency = %g\n",
+			(double)read_sum_tsc/(double)line_count,
+			(double)write_sum_tsc/(double)line_count);
 	pthread_exit(NULL);
 }
 
 void * driver1(void* arg)
 {
 	int i,j,k, iter_count = 0;
-	uint64_t line_count=0;
+	uint64_t line_count=0, init_tsc, end_tsc;
 	size_t * write_pntr;
 	write_pntr = array;
 // pin core affinity
@@ -190,13 +193,19 @@ void * driver1(void* arg)
 		if(shared == 0)
 			{
 //			if(iter_count < 10)fprintf(stderr,"writer calling write kernel\n");
+			init_tsc = _rdtsc();
 			write_pntr = write_buf(seg_size, write_pntr);
+			end_tsc = _rdtsc();
+			write_sum_tsc += (end_tsc - init_tsc);
 //			if(iter_count < 10)fprintf(stderr,"writer returned from write kernel\n");
 			}
 		else 
 			{
 //			if(iter_count < 10)fprintf(stderr,"writer calling read kernel\n");
+			init_tsc = _rdtsc();
 			write_pntr = read_buf(seg_size, write_pntr);
+			end_tsc = _rdtsc();
+			write_sum_tsc += (end_tsc - init_tsc);
 //			if(iter_count < 10)fprintf(stderr,"writer returned from read kernel\n");
 			}
 		line_count += seg_size;
@@ -218,7 +227,7 @@ void usage()
 	fprintf(stderr,"     thus the size controls in which level of cache/memory the full buffer will reside\n");
 	fprintf(stderr," -ln  -l signifies lines, n indicates the number of lines used in the pointer chase loop\n");
 	fprintf(stderr,"      this size controls in which level of cache/memory the partial buffer, which is exchanged between the threads, will reside\n");
-	fprintf(stderr," -SN  -S signifies segments N indicates the number of segments that the buffer will be divided into.\n");
+	fprintf(stderr," -SN  -S signifies segments N indicates the number of lines in the blocks that the buffer will be divided into for randomization.\n");
 	fprintf(stderr,"         The number of segments must be greater than the number of memory access streams the HW prefetcher can track for the randomization to defeat the HW prefetcher.\n");
 	fprintf(stderr,"          if it is set to 1 then the linked list will walk through the buffer in order. \n");
 	fprintf(stderr,"          This will yield an open page latency if the HW prefetchers are completely disabled and the buffer is much larger than the LLC.\n");
