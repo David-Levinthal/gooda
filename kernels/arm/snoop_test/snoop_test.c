@@ -60,7 +60,7 @@ static inline u64 _loc_freq(void)
 
 int exchange_flag, shared, seg_size;
 size_t *array, *write_pointer, *read_pointer;
-uint64_t read_sum_tsc=0, total_lines;
+uint64_t read_sum_tsc=0, write_sum_tsc = 0, total_lines;
 __pid_t pid=0;
 int cpu, cpu_read, cpu_write;
 
@@ -171,13 +171,15 @@ void * driver0(void * arg)
 		}
 	fprintf(stderr," from read thread, line_count = %ld, TSC sum = %lu, latency = %g\n",
 			line_count, read_sum_tsc,(double)read_sum_tsc/(double)line_count);
+	fprintf(stderr," read latency = %g, write latency = %g\n",
+			(double)read_sum_tsc/(double)line_count,(double)write_sum_tsc/(double)line_count);
 	pthread_exit(NULL);
 }
 
 void * driver1(void* arg)
 {
 	int i,j,k, iter_count = 0;
-	uint64_t line_count=0;
+	uint64_t line_count=0, init_tsc, end_tsc;
 	size_t * write_pntr;
 	write_pntr = array;
 // pin core affinity
@@ -197,6 +199,7 @@ void * driver1(void* arg)
 			{
 			i++;
 			}
+		init_tsc = _rdtsc();
 		if(shared == 0)
 			{
 //			if(iter_count < 10)fprintf(stderr,"writer calling write kernel\n");
@@ -209,6 +212,8 @@ void * driver1(void* arg)
 			write_pntr = read_buf(seg_size, write_pntr);
 //			if(iter_count < 10)fprintf(stderr,"writer returned from read kernel\n");
 			}
+                end_tsc = _rdtsc();
+                write_sum_tsc += (end_tsc - init_tsc);
 		line_count += seg_size;
 		iter_count++;
 		exchange_flag = 1;
