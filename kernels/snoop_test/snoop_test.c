@@ -42,7 +42,7 @@ typedef unsigned long long u64;
 
 int exchange_flag, shared, seg_size;
 size_t *array, *write_pointer, *read_pointer;
-uint64_t read_sum_tsc=0, write_sum_tsc=0, total_lines;
+uint64_t read_sum_tsc=0, write_sum_tsc=0, total_lines,lines_in_buf; 
 __pid_t pid=0;
 int cpu, cpu_read, cpu_write;
 
@@ -128,7 +128,7 @@ void rndm_list(int* list, int n)
 void * driver0(void * arg)
 {
 	int i,j,k, iter_count =0;
-	uint64_t line_count=0, init_tsc, end_tsc;
+	uint64_t line_count=0, init_tsc, end_tsc,old_tsc=0;
 	size_t * read_pntr;
 
 	read_pntr = array;
@@ -141,7 +141,27 @@ void * driver0(void * arg)
 		}
 	fprintf(stderr,"total_lines = %ld\n",total_lines);
 
+        read_sum_tsc = 0;
+        while(line_count < lines_in_buf)
+                {
+                i = 0;
+                while(exchange_flag == 0)
+                        {
+                        i++;
+                        }
+                init_tsc = _rdtsc();
+//              if(iter_count < 10)fprintf(stderr,"reader calling kernel\n");
+                read_pntr = read_buf(seg_size, read_pntr);
+//              if(iter_count < 10)fprintf(stderr,"reader returned from kernel\n");
+                end_tsc = _rdtsc();
+                read_sum_tsc += (end_tsc - init_tsc);
+                line_count += seg_size;
+                iter_count++;
+                exchange_flag = 0;
+                }
+
 	read_sum_tsc = 0;
+	line_count = 0;
 	while(line_count < total_lines)
 		{
 		i = 0;
@@ -158,6 +178,10 @@ void * driver0(void * arg)
 		line_count += seg_size;
 		iter_count++;
 		exchange_flag = 0;
+//		if((iter_count % 10) == 0)
+//		fprintf(stderr," from read thread, line_count = %ld, TSC sum = %lu, latency = %g, tsc_delta = %lu\n",
+//			line_count, read_sum_tsc,(double)read_sum_tsc/(double)line_count,(read_sum_tsc - old_tsc));
+		old_tsc = read_sum_tsc;
 		}
 	fprintf(stderr," from read thread, line_count = %ld, TSC sum = %lu, latency = %g\n",
 			line_count, read_sum_tsc,(double)read_sum_tsc/(double)line_count);
@@ -182,7 +206,39 @@ void * driver1(void* arg)
 		}
 	fprintf(stderr,"from writer, total_lines = %ld, shared = %d\n",
 		total_lines,shared);
-	
+
+        while(line_count < lines_in_buf)
+                {
+                i = 0;
+                while(exchange_flag == 1)
+                        {
+                        i++;
+                        }
+                if(shared == 0)
+                        {
+//                      if(iter_count < 10)fprintf(stderr,"writer calling write kernel\n");
+                        init_tsc = _rdtsc();
+                        write_pntr = write_buf(seg_size, write_pntr);
+                        end_tsc = _rdtsc();
+                        write_sum_tsc += (end_tsc - init_tsc);
+//                      if(iter_count < 10)fprintf(stderr,"writer returned from write kernel\n");
+                        }
+                else
+                        {
+//                      if(iter_count < 10)fprintf(stderr,"writer calling read kernel\n");
+                        init_tsc = _rdtsc();
+                        write_pntr = read_buf(seg_size, write_pntr);
+                        end_tsc = _rdtsc();
+                        write_sum_tsc += (end_tsc - init_tsc);
+//                      if(iter_count < 10)fprintf(stderr,"writer returned from read kernel\n");
+                        }
+                line_count += seg_size;
+                iter_count++;
+                exchange_flag = 1;
+                }
+
+	line_count = 0;
+	write_sum_tsc = 0;
 	while(line_count < total_lines)
 		{
 		i = 0;
@@ -248,7 +304,7 @@ int main(int argc, char ** argv)
 	int rc0, rc1;
 	int i,j,k, line_count=0,stride=0, fd = -1;
 	off_t offset = 0;
-	int len=10240000, iter=10,mult=1,main_ret=0;
+	int len=1024000, iter=10,mult=1,main_ret=0;
 	double iterations;
 	size_t start, stop, run_time, call_start, call_stop, call_run_time,total_bytes=0;
 	size_t buf_size,jj,zero_loop, buf_by_num_seg,ind;
@@ -308,6 +364,7 @@ int main(int argc, char ** argv)
 			err(1, "unknown option %c", c);
 		}
 	}
+	lines_in_buf = line_count;
 	iter = iter*mult;
 	total_lines = len*iter;
 	fprintf(stderr," seg_size = %d, line_count = %d, total_lines = %ld\n",
