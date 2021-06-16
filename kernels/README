@@ -3,3 +3,16 @@ if running on ubuntu change the first line of the build.sh from
 #! /bin/sh
 to
 #! /bin/bash
+
+the machine should be set up with perf which requires the following instructions be executed as root (not sudo)
+          su root
+          echo 0 > /proc/sys/kernel/perf_event_paranoid
+          echo 0 > /proc/sys/kernel/kptr_restrict
+as sudo
+sudo modprobe msr
+
+further prefetchers should be disabled in the bios for most tests, though the bandwidth tests should be run with and without hw prefetchers.
+and numa_balancing needs to be disabled
+echo 0 | sudo tee /proc/sys/kernel/numa_balancing
+and for TLB testing it is a good idea to disable THP
+echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled
