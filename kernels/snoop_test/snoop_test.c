@@ -77,6 +77,11 @@ pin_cpu(pid_t pid, unsigned int cpu)
        return syscall(__NR_sched_setaffinity, pid, sizeof(my_mask), &my_mask);
 }
 
+void evict_line_from_cache(volatile void *ptr)
+{
+    asm volatile ("clflush (%0)" :: "r"(ptr));
+}
+
 void rndm_list(int* list, int n)
 {
 	int* l1,*l2;
@@ -178,7 +183,7 @@ void * driver0(void * arg)
 		line_count += seg_size;
 		iter_count++;
 		exchange_flag = 0;
-//		if((iter_count % 10) == 0)
+//		if((iter_count % 1000) == 0)
 //		fprintf(stderr," from read thread, line_count = %ld, TSC sum = %lu, latency = %g, tsc_delta = %lu\n",
 //			line_count, read_sum_tsc,(double)read_sum_tsc/(double)line_count,(read_sum_tsc - old_tsc));
 		old_tsc = read_sum_tsc;
@@ -297,11 +302,11 @@ void usage()
 
 int main(int argc, char ** argv)
 {
-	char * buf1;
+	char * buf1, *ptr;
 	void * ret;
 	size_t ret_val = 0;
 	size_t  array_stride;
-	int rc0, rc1;
+	int rc0, rc1,flush=0;
 	int i,j,k, line_count=0,stride=0, fd = -1;
 	off_t offset = 0;
 	int len=1024000, iter=10,mult=1,main_ret=0;
@@ -331,7 +336,7 @@ int main(int argc, char ** argv)
 		err(1,"insufficient invocation arguments");
 		}
 
-	while ((c = getopt(argc, argv, "i:r:w:l:S:m:L:sh")) != -1) {
+	while ((c = getopt(argc, argv, "i:r:w:l:S:m:L:sfh")) != -1) {
 		switch(c) {
 		case 'i':
 			cpu = atoi(optarg);
@@ -347,6 +352,9 @@ int main(int argc, char ** argv)
 			break;
 		case 's':
 			shared = 1;
+			break;
+		case 'f':
+			flush = 1;
 			break;
 		case 'S':
 			num_seg = atoi(optarg);
@@ -474,7 +482,15 @@ int main(int argc, char ** argv)
 	array[(size_t)array_stride*index[line_count-1]] = (size_t)&array[0];
 
 //	for(jj=0; jj< line_count; jj+=8) printf(", jj = %d, array[jj]-&array[0]/array_stride = %d\n",jj,(array[jj]-(size_t)&array[0])/array_stride);
+//	flush the cache
+	if(flush == 1){
+		ptr=buf1;
+		for(jj=0;jj<line_count;jj++){
+			evict_line_from_cache(ptr);
+			ptr+=64;
 
+		}
+	}
 // run the walker
 	printf(" invoking reader %d times which loops  %d times on buffer of %d lines with a stride of %d, for a total size of %zu\n",iter,len,line_count,stride,buf_size);
 
