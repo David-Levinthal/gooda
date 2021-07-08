@@ -28,11 +28,11 @@ static int genC (int star_so, int chain, int depth, FILE* fp, FILE* fp_header, i
 	fprintf (fp,"{\n");
 	fprintf (fp,"\tlong max_depth = %d;\n",depth_max);
 	fprintf (fp,"\t__asm__( \n");
+	fprintf (fp,"\t\".align 64\\n\\t\"\n");
 
 //	for(j=0;j<50;j++){
 //		fprintf (fp,"\t\"xorq    %%rdx, %%rdx\\n\\t\"\n");
 //		}
-	fprintf (fp,"\t\".align 64\\n\\t\"\n");
 	fprintf (fp,"\t);\n");
 
 
