@@ -31,6 +31,7 @@ limitations under the License.
 #include <sched.h>
 #include <getopt.h>
 #include <pthread.h>
+#include <math.h>
 
 typedef unsigned long long u64;
 #define DECLARE_ARGS(val, low, high)    unsigned low, high
@@ -43,11 +44,13 @@ typedef unsigned long long u64;
 int exchange_flag, shared, seg_size;
 size_t *array, *write_pointer, *read_pointer;
 uint64_t read_sum_tsc=0, write_sum_tsc=0, total_lines,lines_in_buf; 
+uint64_t read_time,max_time=0,rd_time_sq=0,block_count=0;
 __pid_t pid=0;
 int cpu, cpu_read, cpu_write;
 
 extern size_t * read_buf(int len, size_t * buf);
 extern size_t * write_buf(int len, size_t * buf);
+double sqrt(double arg);
 
 static inline unsigned long long _rdtsc(void)
 {
@@ -133,8 +136,9 @@ void rndm_list(int* list, int n)
 void * driver0(void * arg)
 {
 	int i,j,k, iter_count =0;
-	uint64_t line_count=0, init_tsc, end_tsc,old_tsc=0;
+	uint64_t line_count=0, init_tsc, end_tsc,old_tsc=0, avg_time;
 	size_t * read_pntr;
+	double std_dev=0.,std_dev2, avg,max_val;
 
 	read_pntr = array;
 // pin core affinity
@@ -179,6 +183,9 @@ void * driver0(void * arg)
 		read_pntr = read_buf(seg_size, read_pntr);
 //		if(iter_count < 10)fprintf(stderr,"reader returned from kernel\n");
 		end_tsc = _rdtsc();
+		read_time = (end_tsc - init_tsc);
+		if(read_time > max_time)max_time=read_time;
+		rd_time_sq+= read_time*read_time;
 		read_sum_tsc += (end_tsc - init_tsc);
 		line_count += seg_size;
 		iter_count++;
@@ -188,11 +195,16 @@ void * driver0(void * arg)
 //			line_count, read_sum_tsc,(double)read_sum_tsc/(double)line_count,(read_sum_tsc - old_tsc));
 		old_tsc = read_sum_tsc;
 		}
+	avg_time = read_sum_tsc/line_count;
+	avg = (double)avg_time;
+	max_val = (double)max_time/(double)seg_size;
+	std_dev2 = (double)(((double)rd_time_sq - (avg*avg))/line_count);
+	std_dev = sqrt(std_dev2);
 	fprintf(stderr," from read thread, line_count = %ld, TSC sum = %lu, latency = %g\n",
 			line_count, read_sum_tsc,(double)read_sum_tsc/(double)line_count);
-	fprintf(stderr, " read latency = %g, write latency = %g\n",
+	fprintf(stderr, " read latency = %g, write latency = %g, max_time = %g, avg_time = %g, std_dev = %g\n",
 			(double)read_sum_tsc/(double)line_count,
-			(double)write_sum_tsc/(double)line_count);
+			(double)write_sum_tsc/(double)line_count,max_val, avg, std_dev);
 	pthread_exit(NULL);
 }
 
@@ -313,7 +325,7 @@ int main(int argc, char ** argv)
 	double iterations;
 	size_t start, stop, run_time, call_start, call_stop, call_run_time,total_bytes=0;
 	size_t buf_size,jj,zero_loop, buf_by_num_seg,ind;
-	size_t num_pages, page_size, var_size;
+	size_t num_pages, page_size, var_size,max_time=0;
 	int cpu_setsize;
 	cpu_set_t mask;
 //	size_t pattern[] = {4,1,5,2,6,3,7,0};
