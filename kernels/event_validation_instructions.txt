@@ -7,6 +7,8 @@ for perf be sure to
           echo 0 > /proc/sys/kernel/kptr_restrict
 
 you use perf list to make a list of all events..one event/row no spaces...so that takes some manual editting, grep-v etc
+note: if there are huge numbers of uncore counters, you might eliminate those  (grep -v UNC_ events.txt> core_events.txt)
+
 use the latency_noarch/walker to check the size of the hw prefetch window by varying the -S option from 1 to ~8096 in 
 powers of 2, use a buffer big enough to be resident in dram like say 32768000   (ie 20GB)
 the buffer must be an integer multiple of the -S option   so that value has lots of powers of 2 in it
