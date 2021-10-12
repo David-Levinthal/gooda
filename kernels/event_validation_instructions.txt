@@ -1,0 +1,69 @@
+basic event validation directions
+serious performance HW event validation and basic uarch property measurement takes a shockingly long time
+install perf (or emon)
+for perf be sure to
+          su root
+          echo 0 > /proc/sys/kernel/perf_event_paranoid
+          echo 0 > /proc/sys/kernel/kptr_restrict
+
+you use perf list to make a list of all events..one event/row no spaces...so that takes some manual editting, grep-v etc
+use the latency_noarch/walker to check the size of the hw prefetch window by varying the -S option from 1 to ~8096 in 
+powers of 2, use a buffer big enough to be resident in dram like say 32768000   (ie 20GB)
+the buffer must be an integer multiple of the -S option   so that value has lots of powers of 2 in it
+
+all tests should be run in modes to make the principal target events count at least 1 billion to minimize any signal/noise
+
+disable thp and numa balacing
+set the machine in performance mode
+echo 0 | sudo tee /proc/sys/kernel/numa_balancing
+echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled
+echo performance | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+
+disable all prefetchers.
+check this with the linked list walker  (latency_noarch/walker)
+        make sure the latency is about the same with a randomization set by -S1 and some larger value like -S4096
+use the dram_core_scan and c2c_core_scan to map the numa structure.
+use the fourby.sh script to test all perf events in the list you made against every invocation of every microkernel of interest
+this script by default uses perf to collect events only on core2, making aggregation of the event data easy 
+(grep CPU2 walker.log)
+this process means that each configuration of each microkernel will be run ~ 100 times
+this is why it takes so long
+
+ex:
+./fourby.sh event_list.txt ./latency_noarch/walker -i0 -r2 -l256 -s0 -S1 > ~/walker_nopf_l256_s0.log 2>&1 &
+to test l1d resident buffer access events
+change the -l argument for l2,l3, dram sized buffers..
+change the -i argument to initialize the buffer on the other socket and on other cores of socket0 if the scans showed non uniform latency
+keep the prefetchers disabled
+do the same sort of thing with snoop_test/snoop_test
+do the same sort of thing with the cond_br_str test with -T0 (random string compare, 50% mispredicted path, -T1 100% predicted)
+         test if cacheline moves for cancelled/speculative instructions are counted
+
+branch tests 
+should be run with prefetchers disabled
+these can be used to measure the impact of instruction fetching and the ability to monitor instruction starvation (empty scheduler)
+the codes should be built so the binaries are much much larger than L2 cache size..but still fitting in L3
+the binaries will need -m option (loop count multiplier) to increase the branch counts to ~ 1 billion
+uncond_jpm_rdm should be build with build_big.sh   
+     this will build a binary with 200k unconditional branches in a loop  multiplier of 10000 is advised
+call_tests
+best ones are 
+sources_att_ran  (randomized stacks of direct calls)
+sources_indirect_ran   (randomized stacks of indirect calls/function pointers)
+I usually build these as 
+./build/sh 10 10 1000 
+this makes a 10X 10 matirix of randomized call stacks 1000 function deep..ie 100K functions
+using parallel make randomizes the function positions further in the binary
+
+making larger binaries can be problematic due the limits on the size of command line arguments (the link)
+thus you have to try things like using relocatable binaries
+#! /bin/bash
+ulimit -s 524288
+set -x
+for i in {0..9}
+        do
+             echo   ld -r FOO_00"$i"_*.o -o BOO$i.o;
+done
+and then link the BOO*.o and main.o
+
+       
