@@ -1,5 +1,22 @@
 basic event validation directions
-serious performance HW event validation and basic uarch property measurement takes a shockingly long time
+The objective is to identify the specific performance costly micro architectural operations, distinguishing related issues by
+performance cost. The next step is to identify hw performance events that count these unique issues and no others. This allows the 
+event counts to be weighted by the unique performance costs.
+A simple example is likely to help clarify these ideas.It turns out to be not so simple.
+Consider cacheline moves from the L3 cache. If the move is caused by a load requiring the data in order to complete it will cause
+a performance penalty approximately equal to the load to use latency of retreiving a cacheline from L3. However to identify an event
+that can be assigned this penalty is a bit more complicated. If the event also counts cacheline moves due to hw prefetches or stores
+or even code fetches, the event will not be usable to evaluate a performance cost. Further if it counts cacheline moves due to
+specualtive loads that are later cancelled the value of event_count*L3_latency will likely overcount by the fraction of speculative,
+but cancelled loads.
+Another issue to consider is that the L3 load to use latency may depend on the topology. If the L3 cache has a non uniform memory
+access structure (consider CPU sockets made of chiplets with interconnects), then a unique penalty may not exist for an event
+that counts retireing loads that pull lines from "L3", as the L3 cache may have a more complex structure. 
+In such a case one needs an event for topologies with approximately constant cost.
+
+serious performance HW event validation and basic uarch property measurement takes a shockingly long time.
+A full evaluation may result in 5000 to 10000 runs of the assorted microkernels by the time all the tests outlined below 
+are completed.
 install perf (or emon)
 for perf be sure to
           su root
@@ -35,7 +52,8 @@ ex:
 ./fourby.sh event_list.txt ./latency_noarch/walker -i0 -r2 -l256 -s0 -S1 > ~/walker_nopf_l256_s0.log 2>&1 &
 to test l1d resident buffer access events
 change the -l argument for l2,l3, dram sized buffers..
-change the -i argument to initialize the buffer on the other socket and on other cores of socket0 if the scans showed non uniform latency
+change the -i argument to initialize the buffer on the other socket and on other cores of socket0 if the scans showed 
+non uniform latency
 keep the prefetchers disabled
 do the same sort of thing with snoop_test/snoop_test
 do the same sort of thing with the cond_br_str test with -T0 (random string compare, 50% mispredicted path, -T1 100% predicted)
@@ -68,4 +86,17 @@ for i in {0..9}
 done
 and then link the BOO*.o and main.o
 
-       
+bandwidth tests
+The mem_bw directory has a variety of streaming double precision FP access tests, pure stores (memory assignment), copy and triad.
+the build script will compile these under a variety of options. At this time I have not found how to get the compilers to 
+generate non temproal streaming stores. The pure store tests store values of 0 or 10. As some instruction sets may have memory
+zeroing instructions the assignment of a nn zero value may be useful.
+these should be run against all events with the fourby.sh script to make sure any events identified as being valuable in evaluating
+load latency costs do in fact only count loads. These tests can be run for buffers resident in L1D,L2,L3, local or remote dram
+because, like the linked list walker, the arguments specify the initializing core, the core the loop is run on and the buffer size.
+This is a very old test and the buffer sizes are set in arch.h and may need to be tuned for the CPU under test.
+
+At this point enabling the hw prefetchers is a good idea
+rerunning the mem_bw tests and linked list walker tests with fourby.sh will now identify whether the events associated with cacheline
+moves driven by loads in fact do not include hw prefetched lines.
+  
