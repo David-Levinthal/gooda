@@ -95,8 +95,8 @@ main(int argc, char ** argv)
 	double *a, *b, *c, xx=0.01, bw, avg_bw, best_bw=-1.0;
 	char * buf1, *buf2, *buf3;
 	int i,j,k,offset_a=0,offset_b=0,offset_c=0, mult=1,iter=100, c_val;
-	int mem_level, level_size[4], cpu, cpu_run, bytes_per,scale;
-	size_t len;
+	int mem_level, cpu, cpu_run, bytes_per,scale;
+	size_t len,level_size[4];
 	__pid_t pid=0;
 	int cpu_setsize;
 	cpu_set_t mask;
@@ -167,9 +167,9 @@ main(int argc, char ** argv)
 	level_size[2]=L3;
 	level_size[3]=L4;
 	fprintf(stderr, "len = %zd, mem_level = %d, iter = %d, mult = %d\n",len, mem_level, iter,mult);
-	len = level_size[mem_level]/32;
+	len = level_size[mem_level]/(size_t)8;
 	fprintf(stderr, "len = %zd, mem_level = %d, iter = %d, mult = %d\n",len, mem_level, iter,mult);
-	scale = level_size[3]/(32*len);
+	scale = level_size[3]/((size_t)8*len);
 	fprintf(stderr, "len = %zd, mem_level = %d, iter = %d, mult = %d, scale = %d\n",len, mem_level, iter,mult,scale);
 	iter =iter*scale*mult;
 	
