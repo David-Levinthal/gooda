@@ -14,8 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
  */
 
-#define L1 16*1024
-#define L2 256*1024
-#define L3 16*1024*1024
-#define L4 16*8192*8*1024
-
+int triad(int len, double xx, double * a, double * b, double * c)
+{
+	int i, bytes=24;
+	for(i=0; i< len; i++) a[i] = 10.0;
+	return bytes;
+}
