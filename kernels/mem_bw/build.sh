@@ -13,5 +13,7 @@ gcc -O3 -funsafe-math-optimizations -g -mcpu=native -c writer.c
 gcc -g -O2 driver.c writer.o -o writer_0
 gcc -O3 -funsafe-math-optimizations -g -mcpu=native -c writer10.c
 gcc -g -O2 driver.c writer10.o -o writer_10
+gcc -O3 -funsafe-math-optimizations -g -mcpu=native -c writer10_skip.c
+gcc -g -O2 driver.c writer10_skip.o -o writer_10_skip
 #gcc -O3 -funsafe-math-optimizations -g -xAVX -c writer.c
 #gcc -g -O2 driver.c writer.o -o writer_avx_rfo
