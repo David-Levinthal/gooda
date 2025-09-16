@@ -1,0 +1,6 @@
+objects := $(patsubst %.c,%.o,$(wildcard FOO*.c))
+
+FOO_static3 : $(objects)
+	cc -O0 -Os -fPIE -pie -o FOO_static3 $(objects)
+
+
