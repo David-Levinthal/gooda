@@ -214,9 +214,9 @@ int main(int argc, char ** argv)
 	if(pin_cpu(pid, cpu) == -1) {
 		err(1,"failed to set affinity");
 		}
-	else{
-		fprintf(stderr," process pinned to core %d\n",cpu);
-		}
+//	else{
+//		fprintf(stderr," process pinned to core %d\n",cpu);
+//		}
 
 	pattern = (int*) malloc(num_seg*sizeof(int));
 	if(pattern == NULL)
