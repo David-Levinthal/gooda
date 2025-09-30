@@ -210,7 +210,7 @@ int main(int argc, char ** argv)
 	var_size = sizeof(size_t);
 //	fprintf(stderr, "size_t in %zd bytes\n",var_size);
 // pin core affinity
-/*
+
 	if(pin_cpu(pid, cpu) == -1) {
 		err(1,"failed to set affinity");
 		}
@@ -224,7 +224,7 @@ int main(int argc, char ** argv)
 		fprintf(stderr," failed to malloc pattern for size = %d\n",num_seg);
 		err(1,"malloc of pattern failed");
 		}
-*/
+
 // calculate stride and buffer size
 	stride = page_size*stride + line_size;
 	buf_size = (size_t)line_count*(size_t)stride;
