@@ -1,0 +1,6 @@
+objects := $(patsubst %.c,%.o,$(wildcard FOO*.c))
+
+FOO_*.o : $(objects)
+	cc -O0 -Os -c $(objects)
+
+
