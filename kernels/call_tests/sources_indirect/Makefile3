@@ -1,6 +1,10 @@
+CFLAGS = -O0 -Os
+
+CC=/usr/bin/gcc
+
 objects := $(patsubst %.c,%.o,$(wildcard FOO*.c))
 
 FOO_*.o : $(objects)
-	cc -O0 -Os -c $(objects)
+	GCC -O0 -Os -c $(objects)
 
 
