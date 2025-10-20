@@ -1,4 +1,5 @@
 #! /bin/bash
+ rm FOO.h FOO_main.*
  rm FOO_0*0.*
  rm FOO_*1.*
  rm FOO_*2.*
