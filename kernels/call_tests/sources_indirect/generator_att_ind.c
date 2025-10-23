@@ -33,7 +33,7 @@ static int genC (int star_so, int chain, int depth, FILE* fp, FILE* fp_header)
 	fprintf (fp,"\t__asm__( \n");
 
 	for(j=0;j<50;j++){
-		fprintf (fp,"\t\"xorq    %%rdx, %%rdx\\n\\t\"\n");
+		fprintf (fp,"\t\"xorq    %%r10, %%r10\\n\\t\"\n");
 		}
 	fprintf (fp,"\t);\n");
 
@@ -129,7 +129,7 @@ static int create_main(int max_so, int max_chain, int max_depth)
 
 	return 0;
 }
-
+int
 main(int argc, char* argv[])
 {
 	int max_so,max_chain,max_depth, rval;
