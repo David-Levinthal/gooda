@@ -37,7 +37,7 @@ static int genC (int star_so, int chain, int depth, FILE* fp, FILE* fp_header, i
 	fprintf (fp,"\t\".align 64\\n\\t\"\n");
 
 	for(j=0;j<50;j++){
-		fprintf (fp,"\t\"xorq    %%rdx, %%rdx\\n\\t\"\n");
+		fprintf (fp,"\t\"xorq    %%r10, %%r10\\n\\t\"\n");
 		}
 	fprintf (fp,"\t);\n");
 
@@ -199,7 +199,7 @@ int chk_full(int* rand_array, int max_blocks)
 	}
 	return cnt;
 }
-
+int
 main(int argc, char* argv[])
 {
 	int max_so,max_chain,max_depth, rval;
