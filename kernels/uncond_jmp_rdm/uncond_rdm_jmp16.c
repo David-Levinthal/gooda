@@ -78,7 +78,7 @@ static int create_main(int max_depth)
 
 	return 0;
 }
-
+int
 main(int argc, char* argv[])
 {
 	int max_depth, rval, i, ranval, *temp_array, n=0, max_ran=1000000;
