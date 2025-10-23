@@ -173,7 +173,7 @@ int chk_full(int* rand_array, int max_blocks)
 	}
 	return cnt;
 }
-
+int
 main(int argc, char* argv[])
 {
 	int max_so,max_chain,max_depth, rval;
@@ -196,3 +196,4 @@ main(int argc, char* argv[])
 	get_rand(rand_array, max_depth);
 	rval = create_main(max_so,max_chain,max_depth, rand_array);
 }
+
