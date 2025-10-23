@@ -67,7 +67,7 @@ static int create_main(int max_depth)
 
 	return 0;
 }
-
+int
 main(int argc, char* argv[])
 {
 	int max_so,max_chain,max_depth, rval;
